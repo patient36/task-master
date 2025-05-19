@@ -4,6 +4,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthedUser } from 'src/common/types/authedUser';
 import { Priority, TaskStatus } from 'generated/prisma';
+import { Prisma } from 'generated/prisma';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class TasksService {
@@ -42,19 +44,38 @@ export class TasksService {
     }
   }
 
-  async findAll(page = 1, limit = 20, AuthedUser: AuthedUser) {
+  async findAll(page = 1, limit = 20, AuthedUser: AuthedUser, status?: string,) {
     try {
-      page = Math.max(1, page);
-      const skip = (page - 1) * limit;
-      const tasks = await this.prisma.task.findMany({ skip, take: limit, where: { creatorId: AuthedUser.id }, orderBy: { createdAt: 'desc' } });
-      const total = await this.prisma.task.count({ where: { creatorId: AuthedUser.id } });
+      const safePage = Math.max(1, page);
+      const skip = (safePage - 1) * limit;
 
-      return { page, limit, size: tasks.length, total, tasks }
+      const where: any = {
+        creatorId: AuthedUser.id,
+        ...(status && { status }),
+      };
+
+      const [tasks, total] = await Promise.all([
+        this.prisma.task.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.task.count({ where }),
+      ]);
+
+      return {
+        page: safePage,
+        limit,
+        size: tasks.length,
+        total,
+        tasks,
+      };
 
     } catch (error) {
       this.logger.error(error.message, error.stack);
 
-      if (error instanceof HttpException) throw error
+      if (error instanceof HttpException) throw error;
 
       throw new HttpException(
         {
@@ -136,6 +157,77 @@ export class TasksService {
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async search(query: string, page = 1, limit = 20, AuthedUser: AuthedUser) {
+    try {
+      const safePage = Math.max(1, page);
+      const skip = (safePage - 1) * limit;
+
+      const where = {
+        creatorId: AuthedUser.id,
+        title: {
+          contains: query,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      };
+
+      const [tasks, total] = await Promise.all([
+        this.prisma.task.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.task.count({ where }),
+      ]);
+
+      return {
+        page: safePage,
+        limit,
+        size: tasks.length,
+        total,
+        tasks,
+      };
+
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new HttpException(
+        {
+          message: 'Failed to search tasks',
+          error: error.message || 'Unexpected error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Cron(CronExpression.EVERY_10_HOURS)
+  async handleOverdueTasks() {
+    try {
+      const now = new Date();
+      const overdueTasks = await this.prisma.task.findMany({
+        where: {
+          dueTime: {
+            lt: now,
+          },
+          status: TaskStatus.PENDING,
+        },
+      });
+
+      for (const task of overdueTasks) {
+        await this.prisma.task.update({
+          where: { id: task.id },
+          data: { status: TaskStatus.OVERDUE },
+        });
+      }
+      this.logger.log(`Updated ${overdueTasks.length} pending tasks to overdue.`);
+    } catch (error) {
+      this.logger.error('Error handling overdue tasks', error);
     }
   }
 }

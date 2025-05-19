@@ -164,7 +164,8 @@ exports.Role = exports.$Enums.Role = {
 exports.TaskStatus = exports.$Enums.TaskStatus = {
   COMPLETED: 'COMPLETED',
   PENDING: 'PENDING',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  OVERDUE: 'OVERDUE'
 };
 
 exports.Priority = exports.$Enums.Priority = {

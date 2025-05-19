@@ -23,7 +23,9 @@ model Task {
   id          String     @id @default(cuid())
   title       String
   description String
+  dueTime     DateTime
   status      TaskStatus @default(PENDING)
+  priority    Priority   @default(NORMAL)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   creator     User?      @relation(fields: [creatorId], references: [id])
@@ -34,9 +36,16 @@ enum TaskStatus {
   COMPLETED
   PENDING
   CANCELLED
+  OVERDUE
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
 }

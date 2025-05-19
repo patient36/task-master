@@ -31,7 +31,8 @@ export namespace $Enums {
   export const TaskStatus: {
   COMPLETED: 'COMPLETED',
   PENDING: 'PENDING',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  OVERDUE: 'OVERDUE'
 };
 
 export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus]

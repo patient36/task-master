@@ -15,8 +15,13 @@ export class TasksController {
   }
 
   @Get('/all')
-  findAll(@Query('page') page: number, @Query('limit') limit: number, @CurrentUser() user: AuthedUser) {
-    return this.tasksService.findAll(page, limit, user);
+  findAll(@Query('page') page: number, @Query('limit') limit: number, @Query('status') status: string, @CurrentUser() user: AuthedUser) {
+    return this.tasksService.findAll(page, limit, user, status);
+  }
+
+  @Get('/search')
+  search(@Query('query') query: string, @Query('page') page: number, @Query('limit') limit: number, @CurrentUser() user: AuthedUser) {
+    return this.tasksService.search(query, page, limit, user);
   }
 
   @Get(':id')

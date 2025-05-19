@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import Redis from 'ioredis';
 import { OtpService } from './otp.service';
+import { AuthTokenService } from './auth-token.service';
 
 @Global()
 @Module({
@@ -15,7 +16,8 @@ import { OtpService } from './otp.service';
       },
     },
     OtpService,
+    AuthTokenService,
   ],
-  exports: ['REDIS_CLIENT', OtpService],
+  exports: ['REDIS_CLIENT', OtpService, AuthTokenService]
 })
-export class RedisModule {}
+export class RedisModule { }

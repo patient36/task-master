@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -8,6 +8,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { AuthedUser } from 'src/common/types/authedUser';
 import { ResetPassDto } from './dto/reset-pass.dto';
+import { Token } from 'src/common/decorators/auth-token.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -50,5 +51,10 @@ export class AuthController {
   @Delete('/me')
   deleteAccount(@Body() deleteUserDto: DeleteUserDto, @CurrentUser() user: AuthedUser) {
     return this.authService.deleteAccount(deleteUserDto, user);
+  }
+
+  @Post('/logout')
+  logout(@Token() token: string) {
+    return this.authService.logout(token)
   }
 }

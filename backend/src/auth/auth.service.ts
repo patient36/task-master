@@ -10,10 +10,11 @@ import { AuthedUser } from 'src/common/types/authedUser';
 import { ResetPassDto } from './dto/reset-pass.dto';
 import { OtpService } from 'src/redis/otp.service';
 import { MailService } from 'src/mail/mail.service';
+import { AuthTokenService } from 'src/redis/auth-token.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService, private readonly otpService: OtpService, private readonly mailService: MailService) { }
+  constructor(private readonly prisma: PrismaService, private readonly otpService: OtpService, private readonly mailService: MailService, private readonly authTokenService: AuthTokenService) { }
   private readonly logger = new Logger(AuthService.name);
 
   async register(dto: CreateAuthDto) {
@@ -34,7 +35,8 @@ export class AuthService {
         },
       });
 
-      const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '1h' })
+      const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '6h' })
+      await this.authTokenService.storeToken(accessToken, user.id, 21600);
 
       const { password, ...safeUser } = user;
       return { user: safeUser, accessToken };
@@ -68,7 +70,8 @@ export class AuthService {
         throw new HttpException({ message: 'Wrong password', error: 'Unauthorized' }, HttpStatus.UNAUTHORIZED)
       }
 
-      const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '1h' })
+      const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '6h' })
+      await this.authTokenService.storeToken(accessToken, user.id, 21600);
       const { password, ...safeUser } = user;
       return { user: safeUser, accessToken };
     } catch (error) {
@@ -93,13 +96,16 @@ export class AuthService {
         throw new HttpException({ message: 'User not found', error: 'Not Found' }, HttpStatus.NOT_FOUND);
       }
 
-      const cancelledTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'CANCELLED' }, orderBy: { createdAt: 'desc' } });
-      const pendingTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'PENDING' }, orderBy: { createdAt: 'desc' } });
-      const completedTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'COMPLETED' }, orderBy: { createdAt: 'desc' } });
-      const highPriorityTasks = await this.prisma.task.count({ where: { creatorId: user.id, priority: 'HIGH' }, orderBy: { createdAt: 'desc' } });
-      const normalPriorityTasks = await this.prisma.task.count({ where: { creatorId: user.id, priority: 'NORMAL' }, orderBy: { createdAt: 'desc' } });
-      const lowPriorityTasks = await this.prisma.task.count({ where: { creatorId: user.id, priority: 'LOW' }, orderBy: { createdAt: 'desc' } });
-      const tasks = { cancelled: cancelledTasks, pending: pendingTasks, completed: completedTasks, highPriority: highPriorityTasks, normalPriority: normalPriorityTasks, lowPriority: lowPriorityTasks };
+      const cancelledTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'CANCELLED' } });
+
+      const pendingTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'PENDING' } });
+
+      const completedTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'COMPLETED' } });
+
+      const overDueTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'OVERDUE' } });
+
+
+      const tasks = { cancelled: cancelledTasks, pending: pendingTasks, completed: completedTasks, overdue: overDueTasks };
 
       const { password, ...safeUser } = dbUser;
       return { user: safeUser, tasks };
@@ -300,6 +306,30 @@ export class AuthService {
       throw new HttpException(
         {
           message: 'Password reset failed',
+          error: error.message || 'Unexpected error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async logout(token: string): Promise<{ message: string }> {
+    try {
+
+      if (!token) {
+        throw new HttpException('Missing token', HttpStatus.BAD_REQUEST);
+      }
+      await this.authTokenService.invalidateToken(token);
+
+      return { message: 'Logout successful' };
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new HttpException(
+        {
+          message: 'Logout failed',
           error: error.message || 'Unexpected error',
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
