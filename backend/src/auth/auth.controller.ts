@@ -7,6 +7,7 @@ import { DeleteUserDto } from './dto/delete-user.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { AuthedUser } from 'src/common/types/authedUser';
+import { ResetPassDto } from './dto/reset-pass.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,18 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Public()
+  @Post('/forgot-password')
+  forgotPassword(@Body("email") email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Public()
+  @Post('/reset-password')
+  resetPassword(@Body() ResetPassDto: ResetPassDto) {
+    return this.authService.resetPassword(ResetPassDto);
+  }
+
   @Get('/me')
   getCurrentUser(@CurrentUser() user: AuthedUser) {
     return this.authService.getCurrentUser(user);
@@ -35,7 +48,7 @@ export class AuthController {
   }
 
   @Delete('/me')
-  deleteAccount(@Body() deleteUserDto: DeleteUserDto,@CurrentUser() user: AuthedUser) {
+  deleteAccount(@Body() deleteUserDto: DeleteUserDto, @CurrentUser() user: AuthedUser) {
     return this.authService.deleteAccount(deleteUserDto, user);
   }
 }

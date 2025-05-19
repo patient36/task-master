@@ -7,10 +7,13 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { AuthedUser } from 'src/common/types/authedUser';
+import { ResetPassDto } from './dto/reset-pass.dto';
+import { OtpService } from 'src/redis/otp.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService, private readonly otpService: OtpService, private readonly mailService: MailService) { }
   private readonly logger = new Logger(AuthService.name);
 
   async register(dto: CreateAuthDto) {
@@ -207,4 +210,100 @@ export class AuthService {
     }
   }
 
+  async forgotPassword(email: string) {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        throw new HttpException({ message: 'User not found', error: 'Not Found' }, HttpStatus.NOT_FOUND);
+      }
+
+      const OTP = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+
+      await this.otpService.saveToken(email, OTP);
+      const formatOTP = (otp: string) => otp.match(/.{1,4}/g)?.join(' ') ?? otp;
+
+      const formattedOTP = formatOTP(OTP);
+
+      const htmlMessage = `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+                          <h2 style="color: #2a9d8f;">Password Reset OTP</h2>
+                          <p>Hello ${user.name},</p>
+                          <p>Your one-time password (OTP) to reset your password is:</p>
+                          <div style="
+                            font-size: 28px;
+                            font-weight: bold;
+                            letter-spacing: 0.15em;
+                            background: #e0f7f1;
+                            padding: 12px 20px;
+                            border-radius: 6px;
+                            display: inline-block;
+                            margin: 20px 0;
+                            ">
+                            ${formattedOTP}
+                          </div>
+                          <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
+                          <p>Thank you,<br/>Task Master Support Team</p>
+                        </div>
+                      `;
+
+      await this.mailService.sendMail(
+        'topfateson@gmail.com',
+        'Password Reset OTP',
+        `Your OTP is ${formattedOTP}`,
+        htmlMessage
+      );
+
+      return { message: 'OTP sent' };
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new HttpException(
+        {
+          message: 'Password reset failed',
+          error: error.message || 'Unexpected error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async resetPassword(dto: ResetPassDto) {
+    try {
+      const isValid = await this.otpService.verifyToken(dto.email, dto.OTP);
+
+      if (!isValid) {
+        throw new HttpException({ message: 'Invalid OTP', error: 'Unauthorized' }, HttpStatus.UNAUTHORIZED);
+      }
+
+      const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+
+      if (!user) {
+        throw new HttpException({ message: 'User not found', error: 'Not Found' }, HttpStatus.NOT_FOUND);
+      }
+
+      const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+      await this.otpService.removeToken(dto.email);
+      await this.prisma.user.update({
+        where: { email: dto.email },
+        data: { password: hashedPassword },
+      });
+
+      return { message: 'Password reset successfully' };
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new HttpException(
+        {
+          message: 'Password reset failed',
+          error: error.message || 'Unexpected error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
