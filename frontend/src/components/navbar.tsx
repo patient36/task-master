@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, Menu, Search } from 'lucide-react'
+import { ChevronDown, Menu, Search, User, User2, UserRound } from 'lucide-react'
 import Link from "next/link"
 import { useState } from "react"
 
@@ -64,9 +64,10 @@ export function Navbar() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="flex items-center gap-2 pl-2 pr-1">
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                                    <AvatarFallback>JD</AvatarFallback>
+                                <Avatar className="h-7 w-7">
+                                    <AvatarFallback>
+                                        <User2 className="h-4 w-4 text-muted-foreground" />
+                                    </AvatarFallback>
                                 </Avatar>
                                 <span
                                     className="hidden truncate text-sm font-medium md:inline-block max-w-[100px]"
@@ -79,8 +80,6 @@ export function Navbar() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem>Settings</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>Log out</DropdownMenuItem>

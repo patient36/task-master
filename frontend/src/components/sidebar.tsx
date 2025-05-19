@@ -22,10 +22,10 @@ export function Sidebar({ closeMobileMenu }: SidebarProps) {
             active: pathname === "/dashboard",
         },
         {
-            label: "My Account",
+            label: "Settings",
             icon: User,
-            href: "/account",
-            active: pathname === "/account",
+            href: "/settings",
+            active: pathname === "/settings",
         }
     ]
 

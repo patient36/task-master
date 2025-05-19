@@ -112,7 +112,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --toast-bg: #1f2937;
+  --toast-bg: #0f151c;
   --toast-fg: #f9fafb;
 }
 
@@ -124,4 +124,13 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }

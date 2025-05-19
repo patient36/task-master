@@ -2,16 +2,21 @@ export interface Task {
   id: string
   title: string
   description: string
-  status: "todo" | "in-progress" | "completed" | "overdue"
+  status: "COMPLETED" | "PENDING" | "CANCELLED" | "OVERDUE"
   dueDate: string
-  priority?: "low" | "medium" | "high"
-  assignee?: string
+  priority?: "LOW" | "NORMAL" | "HIGH"
+  creatorId?: string
+  updatedAt?: string
+  createdAt?: string
 }
 
 export interface TaskStats {
   total: number
-  inProgress: number
+  cancelled: number
   completed: number
+  pending: number
   overdue: number
-  newToday: number
+  highPriority: number
+  normalPriority: number
+  lowPriority: number
 }

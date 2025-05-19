@@ -45,16 +45,15 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.total}</div>
-                  <p className="text-xs text-muted-foreground">+{stats.newToday} new today</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.inProgress}</div>
-                  <Progress value={(stats.inProgress / stats.total) * 100} className="mt-2" />
+                  <div className="text-2xl font-bold">{stats.pending}</div>
+                  <Progress value={(stats.pending / stats.total) * 100} className="mt-2" />
                 </CardContent>
               </Card>
               <Card>
@@ -83,7 +82,7 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
               <div className="flex items-center justify-between">
                 <TabsList>
                   <TabsTrigger value="all">All Tasks</TabsTrigger>
-                  <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+                  <TabsTrigger value="pending">Pending</TabsTrigger>
                   <TabsTrigger value="completed">Completed</TabsTrigger>
                   <TabsTrigger value="overdue">Overdue</TabsTrigger>
                 </TabsList>
@@ -95,9 +94,9 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
                 ))}
               </TabsContent>
 
-              <TabsContent value="in-progress" className="mt-4 space-y-4">
+              <TabsContent value="pending" className="mt-4 space-y-4">
                 {tasks
-                  .filter((task) => task.status === "in-progress")
+                  .filter((task) => task.status === "PENDING")
                   .map((task) => (
                     <TaskItem key={task.id} task={task} />
                   ))}
@@ -105,7 +104,7 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
 
               <TabsContent value="completed" className="mt-4 space-y-4">
                 {tasks
-                  .filter((task) => task.status === "completed")
+                  .filter((task) => task.status === "COMPLETED")
                   .map((task) => (
                     <TaskItem key={task.id} task={task} />
                   ))}
@@ -113,7 +112,7 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
 
               <TabsContent value="overdue" className="mt-4 space-y-4">
                 {tasks
-                  .filter((task) => task.status === "overdue")
+                  .filter((task) => task.status === "OVERDUE")
                   .map((task) => (
                     <TaskItem key={task.id} task={task} />
                   ))}
@@ -137,11 +136,11 @@ function TaskItem({ task }: TaskItemProps) {
       <CardContent className="p-0">
         <div className="flex items-start p-4">
           <div className="mr-4 mt-1">
-            {task.status === "completed" ? (
+            {task.status === "COMPLETED" ? (
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-            ) : task.status === "in-progress" ? (
+            ) : task.status === "PENDING" ? (
               <Clock className="h-5 w-5 text-blue-500" />
-            ) : task.status === "overdue" ? (
+            ) : task.status === "OVERDUE" ? (
               <Clock className="h-5 w-5 text-red-500" />
             ) : (
               <Circle className="h-5 w-5 text-gray-400" />
@@ -173,20 +172,15 @@ function TaskItem({ task }: TaskItemProps) {
               {task.priority && (
                 <div className="ml-4 flex items-center">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${task.priority === "high"
-                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        : task.priority === "medium"
-                          ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${task.priority === "HIGH"
+                      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      : task.priority === "NORMAL"
+                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                       }`}
                   >
                     {task.priority}
                   </span>
-                </div>
-              )}
-              {task.assignee && (
-                <div className="ml-4 flex items-center">
-                  <span>Assigned to: {task.assignee}</span>
                 </div>
               )}
             </div>
