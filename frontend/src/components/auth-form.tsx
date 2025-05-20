@@ -7,7 +7,7 @@ import Link from "next/link"
 import { CheckCircle2, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -54,15 +54,9 @@ export function AuthForm() {
                 <Input id="email" type="email" placeholder="name@example.com" required />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/auth/reset-password" className="text-xs text-primary underline-offset-4 hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input id="password" type="password" required />
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" placeholder="password"  required />
               </div>
-
               {formSuccess && (
                 <div className="flex items-center gap-2 rounded-md bg-green-50 p-2 text-sm text-green-600 dark:bg-green-900/30 dark:text-green-400">
                   <CheckCircle2 className="h-4 w-4" />
@@ -70,7 +64,7 @@ export function AuthForm() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -80,6 +74,11 @@ export function AuthForm() {
                   "Login"
                 )}
               </Button>
+              <div className="flex items-center justify-end px-6">
+                <Link href="/reset-password" className="text-xs text-primary underline-offset-4 hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -93,15 +92,9 @@ export function AuthForm() {
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First name</Label>
-                  <Input id="firstName" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last name</Label>
-                  <Input id="lastName" required />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">User name</Label>
+                <Input id="email" type="text" placeholder="Your preferred name" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -109,11 +102,11 @@ export function AuthForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" placeholder="At least 6 characters" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" type="password" required />
+                <Input id="confirmPassword" type="password" placeholder="At least 6 characters" required />
               </div>
 
               {formSuccess && (
@@ -123,7 +116,7 @@ export function AuthForm() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

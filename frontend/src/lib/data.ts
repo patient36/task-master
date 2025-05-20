@@ -81,3 +81,11 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
 
     return { tasks, stats }
 }
+
+export const user = {
+    id: "user-1",
+    name: "Hubert Blaine Wolfeschlegelsteinhausenbergerdorff",
+    email: "hubert.wolfeschlegelstein@example.com",
+    createdAt: "2023-01-15T00:00:00Z",
+    role: "ADMIN",
+}

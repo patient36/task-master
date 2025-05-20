@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Navbar } from "@/components/navbar"
 import { Task, TaskStats } from "@/lib/types"
 import { useState } from "react"
 import { NewTaskModal } from "@/components/new-task-modal"
@@ -21,7 +20,6 @@ export function TaskDashboard({ tasks, stats }: TaskDashboardProps) {
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false)
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
       <div className="flex flex-1">
         <div className="hidden md:block">
           <div className="hidden h-full md:block">

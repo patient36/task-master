@@ -1,23 +1,23 @@
 "use client"
 
-import { ChevronDown, Menu, Search, User, User2, UserRound } from 'lucide-react'
+import { ChevronDown, Menu, User2 } from 'lucide-react'
 import Link from "next/link"
 import { useState } from "react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Sidebar } from "@/components/sidebar"
+import { SearchBar } from './search-bar'
+import { user } from "@/lib/data"
 
 export function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -46,16 +46,8 @@ export function Navbar() {
                         </Link>
                     </Sheet>
                 </div>
-
                 <div className="hidden md:flex md:flex-1 md:items-center md:justify-end md:gap-4">
-                    <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Search tasks..."
-                            className="w-full bg-background pl-8 md:w-[300px] lg:w-[350px]"
-                        />
-                    </div>
+                    <SearchBar />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -71,16 +63,16 @@ export function Navbar() {
                                 </Avatar>
                                 <span
                                     className="hidden truncate text-sm font-medium md:inline-block max-w-[100px]"
-                                    title="Hubert Blaine Wolfeschlegelsteinhausenbergerdorff"
+                                    title={user.name}
                                 >
-                                    Hubert Blaine Wolfeschlegelsteinhausenbergerdorff
+                                    {user.name}
                                 </span>
 
                                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Settings</DropdownMenuItem>
+                            <DropdownMenuItem><Link href="/profile">Settings</Link></DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>Log out</DropdownMenuItem>
                         </DropdownMenuContent>
