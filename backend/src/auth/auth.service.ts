@@ -194,7 +194,7 @@ export class AuthService {
       const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
       if (!isPasswordValid) {
-        throw new HttpException({ message: 'Wrong password', error: 'Unauthorized' }, HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Wrong password', HttpStatus.BAD_REQUEST);
       }
 
       await this.prisma.user.delete({ where: { id } });
