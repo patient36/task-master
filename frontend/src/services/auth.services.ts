@@ -39,13 +39,9 @@ export const logout = async () => {
     }
 };
 
-export const resetPassword = async (email: string, OTP: string, newPassword: string) => {
+export const resetPassword = async (credentials: { email: string, OTP: string, newPassword: string }) => {
     try {
-        const response = await axios.post("auth/reset-password", {
-            email,
-            OTP,
-            newPassword,
-        });
+        const response = await axios.post("auth/reset-password", credentials);
         return response.data;
     } catch (error) {
         throw error;

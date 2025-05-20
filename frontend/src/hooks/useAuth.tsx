@@ -28,11 +28,10 @@ export const useAuth = () => {
 
     const resetPasswordMutation = useMutation({
         mutationKey: ['auth', 'reset-password'],
-        mutationFn: ({ email, OTP, newPassword }: { email: string; OTP: string; newPassword: string }) =>
-            resetPassword(email, OTP, newPassword)
+        mutationFn: resetPassword
     })
 
-    const forgotPasswordMutation = useMutation({
+    const getOTPMutation = useMutation({
         mutationKey: ['auth', 'forgot-password'],
         mutationFn: getOTP
     })
@@ -70,7 +69,7 @@ export const useAuth = () => {
         login: loginMutation.mutate,
         register: registerMutation.mutate,
         resetPassword: resetPasswordMutation.mutate,
-        forgotPassword: forgotPasswordMutation.mutate,
+        getOTP: getOTPMutation.mutate,
         logout: logoutMutation.mutate,
         deleteAccount: deleteAccountMutation.mutate,
         updateUser: updateUserMutation.mutate,
