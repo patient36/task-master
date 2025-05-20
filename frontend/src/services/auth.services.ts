@@ -48,7 +48,6 @@ export const resetPassword = async (credentials: { email: string, OTP: string, n
     }
 };
 
-
 export const getOTP = async (email: string) => {
     try {
         const response = await axios.post("auth/forgot-password", {
@@ -60,27 +59,18 @@ export const getOTP = async (email: string) => {
     }
 };
 
-export const deleteAccount = async (password: string) => {
+export const deleteAccount = async (credentials: { password: string }) => {
     try {
-        const response = await axios.delete("auth/me", {
-            data: {
-                password,
-            },
-        });
+        const response = await axios.delete("auth/me", { data: credentials });
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
-export const updateUser = async (email?: string, name?: string, oldPassword?: string, newPassword?: string) => {
+export const updateUser = async (credentials: { email?: string, name?: string, oldPassword?: string, newPassword?: string }) => {
     try {
-        const response = await axios.patch("auth/me", {
-            email,
-            name,
-            oldPassword,
-            newPassword,
-        });
+        const response = await axios.patch("auth/me", credentials);
         return response.data;
     } catch (error) {
         throw error;

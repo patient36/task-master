@@ -27,10 +27,6 @@ const baseResponseInterceptor = (response: AxiosResponse) => response;
 const baseErrorInterceptor = (error: AxiosError) => {
   const status = error.response?.status;
 
-  if (status === 401) {
-    localStorage.removeItem("task-master-token");
-  }
-
   const data = error.response?.data as { message?: string; error?: string } | undefined;
   const message =
     data?.message ||

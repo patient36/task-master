@@ -125,12 +125,12 @@ export class AuthService {
   }
 
   async update(dto: UpdateAuthDto, AuthedUser: AuthedUser) {
-    try {
-      const { id } = AuthedUser
-      const user = await this.prisma.user.findUnique({ where: { id } });
+    const { id } = AuthedUser;
 
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) {
-        throw new HttpException({ message: 'User not found', error: 'Not Found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException({ message: 'User not found' }, HttpStatus.NOT_FOUND);
       }
 
       if (dto.oldPassword && !user.password) {
@@ -138,22 +138,28 @@ export class AuthService {
       }
 
       if (dto.oldPassword) {
-        const isPasswordValid = await bcrypt.compare(dto.oldPassword, user.password);
-
-        if (!isPasswordValid) {
-          throw new HttpException({ message: 'Wrong password', error: 'Unauthorized' }, HttpStatus.UNAUTHORIZED);
+        const isValid = await bcrypt.compare(dto.oldPassword, user.password);
+        if (!isValid) {
+          throw new HttpException({ message: 'Wrong password' }, HttpStatus.UNAUTHORIZED);
         }
       }
 
       if (dto.newPassword) {
-        const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+        const hashed = await bcrypt.hash(dto.newPassword, 10);
         await this.prisma.user.update({
           where: { id },
-          data: { password: hashedPassword },
+          data: { password: hashed },
         });
       }
 
-      const updatedUser = await this.prisma.user.update({
+      if (dto.email && dto.email !== user.email) {
+        const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        if (existingEmail) {
+          throw new HttpException({ message: 'Email already in use' }, HttpStatus.CONFLICT);
+        }
+      }
+
+      const updated = await this.prisma.user.update({
         where: { id },
         data: {
           name: dto.name ?? user.name,
@@ -161,18 +167,14 @@ export class AuthService {
         },
       });
 
-      const { password, ...safeUser } = updatedUser;
+      const { password, ...safeUser } = updated;
       return safeUser;
     } catch (error) {
       this.logger.error(error.message, error.stack);
-
       if (error instanceof HttpException) throw error;
 
       throw new HttpException(
-        {
-          message: 'Update failed',
-          error: error.message || 'Unexpected error',
-        },
+        { message: 'Update failed', error: error.message || 'Unexpected error' },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

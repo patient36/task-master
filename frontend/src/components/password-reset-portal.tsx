@@ -173,7 +173,7 @@ export function PasswordResetPortal() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    minLength={8}
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -185,7 +185,7 @@ export function PasswordResetPortal() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    minLength={8}
+                    minLength={6}
                   />
                 </div>
                 {error && (

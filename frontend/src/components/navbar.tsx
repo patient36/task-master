@@ -1,8 +1,7 @@
 "use client"
 
-import { ChevronDown, Menu, User2 } from 'lucide-react'
+import { ChevronDown, User2 } from 'lucide-react'
 import Link from "next/link"
-import { useState } from "react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -13,40 +12,38 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ModeToggle } from "@/components/mode-toggle"
-import { Sidebar } from "@/components/sidebar"
 import { SearchBar } from './search-bar'
-import { user } from "@/lib/data"
+import { useAuth } from "@/hooks/useAuth"
+import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 export function Navbar() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const { userData, isError, isLoading, logout } = useAuth();
+    const { user } = userData || {};
+    const router = useRouter()
+    if (isLoading) return <NavbarSkeleton />
+    if (isError) return <NavbarSkeleton />
+    if (!user) return <NavbarSkeleton />
 
+    const handleLogout = () => {
+        logout(undefined, {
+            onSuccess: () => {
+                toast.success("Logged out successfully")
+                router.push('/')
+            },
+            onError: () => {
+                toast.error("Failed to log out")
+            }
+        });
+    };
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-2 md:gap-4">
-                    <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="md:hidden">
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="p-0">
-                            <SheetTitle>
-                                <Link href="/dashboard" className="flex items-center gap-2">
-                                    <span className="hidden font-bold sm:inline-block">Task Master</span>
-                                </Link>
-                            </SheetTitle>
-                            <Sidebar closeMobileMenu={() => setIsMobileMenuOpen(false)} />
-                        </SheetContent>
-                        <Link href="/dashboard" className="flex items-center gap-2">
-                            <span className="hidden font-bold sm:inline-block">Task Master</span>
-                        </Link>
-                    </Sheet>
+                    <h1 className='max-sm:hidden text-2xl font-bold tracking-tight'>Task Master</h1>
                 </div>
-                <div className="hidden md:flex md:flex-1 md:items-center md:justify-end md:gap-4">
+                <div className="md:flex md:flex-1 md:items-center md:justify-end md:gap-4">
                     <SearchBar />
                 </div>
 
@@ -72,11 +69,30 @@ export function Navbar() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem><Link href="/profile">Settings</Link></DropdownMenuItem>
+                            <Link href="/dashboard"><DropdownMenuItem>Dashboard</DropdownMenuItem></Link>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>Log out</DropdownMenuItem>
+                            <Link href="/settings"><DropdownMenuItem>Settings</DropdownMenuItem></Link>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                </div>
+            </div>
+        </header>
+    )
+}
+
+
+const NavbarSkeleton = () => {
+    return (
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+            <div className="container flex h-16 items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-4">
+                    <h1 className='text-2xl font-bold tracking-tight'>Task Master</h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <ModeToggle />
                 </div>
             </div>
         </header>

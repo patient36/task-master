@@ -54,14 +54,14 @@ export const useAuth = () => {
 
     const updateUserMutation = useMutation({
         mutationKey: ['auth', 'update-user'],
-        mutationFn: ({ name, oldPassword, email, newPassword }: { email: string; name: string; newPassword: string, oldPassword: string }) => updateUser(name, email, oldPassword, newPassword),
+        mutationFn: updateUser,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
         }
     })
 
     return {
-        user: userQuery.data,
+        userData: userQuery.data,
         isLoading: userQuery.isLoading,
         isError: userQuery.isError,
         error: userQuery.error,

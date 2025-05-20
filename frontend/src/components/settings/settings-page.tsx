@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input"
 import { toast } from "react-hot-toast"
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {user} from "@/lib/data"
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
 
-// Form validation schemas
 const nameFormSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
 })
@@ -24,14 +24,18 @@ const emailFormSchema = z.object({
 
 const passwordFormSchema = z
     .object({
-        currentPassword: z.string().min(8, { message: "Password must be at least 8 characters." }),
-        newPassword: z.string().min(8, { message: "Password must be at least 8 characters." }),
-        confirmPassword: z.string().min(8, { message: "Password must be at least 8 characters." }),
+        currentPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
+        newPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
+        confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
         message: "Passwords do not match",
         path: ["confirmPassword"],
     })
+
+const deleteAccountFormSchema = z.object({
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+})
 
 export default function SettingsPage() {
     const [nameSuccess, setNameSuccess] = useState(false)
@@ -41,8 +45,9 @@ export default function SettingsPage() {
     const [emailLoading, setEmailLoading] = useState(false)
     const [passwordLoading, setPasswordLoading] = useState(false)
     const [error, setError] = useState("")
+    const router = useRouter()
+    const { updateUser, deleteAccount, logout } = useAuth()
 
-    // Name form
     const nameForm = useForm<z.infer<typeof nameFormSchema>>({
         resolver: zodResolver(nameFormSchema),
         defaultValues: {
@@ -50,7 +55,6 @@ export default function SettingsPage() {
         },
     })
 
-    // Email form
     const emailForm = useForm<z.infer<typeof emailFormSchema>>({
         resolver: zodResolver(emailFormSchema),
         defaultValues: {
@@ -58,7 +62,6 @@ export default function SettingsPage() {
         },
     })
 
-    // Password form
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
         defaultValues: {
@@ -68,75 +71,84 @@ export default function SettingsPage() {
         },
     })
 
+    const deleteAccountForm = useForm<z.infer<typeof deleteAccountFormSchema>>({
+        resolver: zodResolver(deleteAccountFormSchema),
+        defaultValues: {
+            password: "",
+        },
+    })
+
     // Form submission handlers
     async function onNameSubmit(values: z.infer<typeof nameFormSchema>) {
         setNameLoading(true)
         setError("")
-
-        try {
-            // This would be replaced with your actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-
-            // Simulate successful update
-            console.log("Name updated:", values)
-            setNameSuccess(true)
-            toast.success("Name updated")
-
-            // Reset success message after 3 seconds
-            setTimeout(() => setNameSuccess(false), 3000)
-        } catch (err) {
-            setError("Failed to update name. Please try again.")
-        } finally {
-            setNameLoading(false)
-        }
+        updateUser({ name: values.name }, {
+            onSuccess: () => {
+                setNameSuccess(true)
+                toast.success("Name updated")
+                setTimeout(() => setNameSuccess(false), 3000)
+                setNameLoading(false)
+            },
+            onError: (err) => {
+                toast.error("Failed to update name. Please try again.")
+                setNameLoading(false)
+                setError("Failed to update name. Please try again.")
+            },
+        })
     }
 
     async function onEmailSubmit(values: z.infer<typeof emailFormSchema>) {
         setEmailLoading(true)
         setError("")
-
-        try {
-            // This would be replaced with your actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-
-            // Simulate successful update
-            console.log("Email updated:", values)
-            setEmailSuccess(true)
-            toast.success("Email updated")
-
-            // Reset success message after 3 seconds
-            setTimeout(() => setEmailSuccess(false), 3000)
-        } catch (err) {
-            setError("Failed to update email. Please try again.")
-        } finally {
-            setEmailLoading(false)
-        }
+        updateUser({ email: values.email }, {
+            onSuccess: () => {
+                setEmailSuccess(true)
+                toast.success("Email updated")
+                setTimeout(() => setEmailSuccess(false), 3000)
+                setEmailLoading(false)
+            },
+            onError: (err) => {
+                toast.error(err.message || "Failed to update email. Please try again.")
+                setEmailLoading(false)
+                setError("Failed to update email. Please try again.")
+            },
+        })
     }
 
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         setPasswordLoading(true)
         setError("")
 
-        try {
-            // This would be replaced with your actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+        updateUser(
+            { oldPassword: values.currentPassword, newPassword: values.newPassword },
+            {
+                onSuccess: () => {
+                    setPasswordSuccess(true)
+                    toast.success("Password updated")
+                    setTimeout(() => setPasswordSuccess(false), 3000)
+                    setPasswordLoading(false)
+                },
+                onError: (err) => {
+                    toast.error(err.message || "Failed to update password. Please try again.")
+                    setPasswordLoading(false)
+                    setError("Failed to update password. Please try again.")
+                },
+            })
+    }
 
-            // Simulate successful update
-            console.log("Password updated")
-            setPasswordSuccess(true)
-
-            toast.success("Password updated")
-
-            // Reset form
-            passwordForm.reset()
-
-            // Reset success message after 3 seconds
-            setTimeout(() => setPasswordSuccess(false), 3000)
-        } catch (err) {
-            setError("Failed to update password. Please try again.")
-        } finally {
-            setPasswordLoading(false)
-        }
+    async function onDeleteAccountSubmit(values: z.infer<typeof deleteAccountFormSchema>) {
+        setError("")
+        deleteAccount({ password: values.password }, {
+            onSuccess: () => {
+                toast.success("Account deleted successfully")
+                logout()
+                router.push("/")
+            },
+            onError: (err) => {
+                toast.error(err.message || "Failed to delete account. Please try again.")
+                setError("Failed to delete account. Please try again.")
+            },
+        })
     }
 
     return (
@@ -151,7 +163,7 @@ export default function SettingsPage() {
                 </Alert>
             )}
 
-            <div className="grid grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-6">
+            <div className="grid grid-cols-2 max-md:grid-cols-2 max-sm:grid-cols-1 gap-6">
                 {/* Name Update Section */}
                 <Card>
                     <CardHeader>
@@ -300,6 +312,36 @@ export default function SettingsPage() {
                                     ) : (
                                         "Update Password"
                                     )}
+                                </Button>
+                            </form>
+                        </Form>
+                    </CardContent>
+                </Card>
+
+                {/* Delete Account Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Delete Account</CardTitle>
+                        <CardDescription>Permanently delete your account</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...deleteAccountForm}>
+                            <form onSubmit={deleteAccountForm.handleSubmit(onDeleteAccountSubmit)} className="space-y-4">
+                                <FormField
+                                    control={deleteAccountForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter your password to confirm" type="password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" variant="destructive">
+                                    Delete Account
                                 </Button>
                             </form>
                         </Form>
