@@ -20,7 +20,7 @@ export const useAuth = () => {
 
     const registerMutation = useMutation({
         mutationKey: ['auth', 'register'],
-        mutationFn: ({ name, email, password }: { email: string; password: string, name: string }) => register(email, password, name),
+        mutationFn: register,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
         }

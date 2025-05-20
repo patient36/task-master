@@ -5,7 +5,7 @@ import axiosBase, {
 } from "axios";
 
 const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1/";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api/v1/";
 
 const axios = axiosBase.create({
   baseURL,
@@ -26,11 +26,9 @@ const baseResponseInterceptor = (response: AxiosResponse) => response;
 
 const baseErrorInterceptor = (error: AxiosError) => {
   const status = error.response?.status;
-  const url = error.request?.responseURL;
 
-  if (status === 401 && url && !url.includes("/login") && !url.includes("/register")) {
+  if (status === 401) {
     localStorage.removeItem("task-master-token");
-    window.location.href = "/";
   }
 
   const data = error.response?.data as { message?: string; error?: string } | undefined;

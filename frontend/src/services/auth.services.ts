@@ -1,25 +1,19 @@
 import axios from "@/util/axios.config";
 
 export const login = async (credentials: { email: string; password: string }) => {
-    const { email, password } = credentials;
     try {
-        const response = await axios.post("auth/login", {
-            email,
-            password,
-        });
+        const response = await axios.post("auth/login", credentials);
+        localStorage.setItem("task-master-token", response.data.accessToken);
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
-export const register = async (email: string, password: string,name: string) => {
+export const register = async (credentials: { email: string, password: string, name: string }) => {
     try {
-        const response = await axios.post("auth/create", {
-            email,
-            password,
-            name,
-        });
+        const response = await axios.post("auth/create", credentials);
+        localStorage.setItem("task-master-token", response.data.accessToken);
         return response.data;
     } catch (error) {
         throw error;
@@ -38,6 +32,7 @@ export const getCurrentUser = async () => {
 export const logout = async () => {
     try {
         const response = await axios.post("auth/logout");
+        localStorage.removeItem("task-master-token");
         return response.data;
     } catch (error) {
         throw error;
