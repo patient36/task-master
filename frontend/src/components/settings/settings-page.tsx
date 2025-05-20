@@ -13,6 +13,8 @@ import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
+import { useAuthGuard } from "@/hooks/useAuthGuard"
+import Spinner from "@/components/ui/spinner"
 
 const nameFormSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,6 +40,7 @@ const deleteAccountFormSchema = z.object({
 })
 
 export default function SettingsPage() {
+    const { updateUser, deleteAccount, logout,isLoading,isAuthenticated } = useAuth()
     const [nameSuccess, setNameSuccess] = useState(false)
     const [emailSuccess, setEmailSuccess] = useState(false)
     const [passwordSuccess, setPasswordSuccess] = useState(false)
@@ -46,7 +49,9 @@ export default function SettingsPage() {
     const [passwordLoading, setPasswordLoading] = useState(false)
     const [error, setError] = useState("")
     const router = useRouter()
-    const { updateUser, deleteAccount, logout } = useAuth()
+
+    useAuthGuard()
+    if (isLoading || !isAuthenticated) return <Spinner />
 
     const nameForm = useForm<z.infer<typeof nameFormSchema>>({
         resolver: zodResolver(nameFormSchema),

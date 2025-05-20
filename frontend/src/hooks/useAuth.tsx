@@ -8,6 +8,7 @@ export const useAuth = () => {
         queryKey: ['auth', 'user'],
         queryFn: getCurrentUser,
         retry: false,
+        staleTime: 1000 * 60 * 5,
     });
 
     const loginMutation = useMutation({
@@ -65,6 +66,7 @@ export const useAuth = () => {
         isLoading: userQuery.isLoading,
         isError: userQuery.isError,
         error: userQuery.error,
+        isAuthenticated: !!userQuery.data,
 
         login: loginMutation.mutate,
         register: registerMutation.mutate,

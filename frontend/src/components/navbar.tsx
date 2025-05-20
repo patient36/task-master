@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, User2 } from 'lucide-react'
+import { ChevronDown, Home, User2 } from 'lucide-react'
 import Link from "next/link"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -40,9 +40,10 @@ export function Navbar() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">
-                <div className="flex items-center gap-2 md:gap-4">
-                    <h1 className='max-sm:hidden text-2xl font-bold tracking-tight'>Task Master</h1>
-                </div>
+                <Link href="/" className="flex items-center gap-2 md:gap-4 ">
+                    <Home className="hidden h-6 w-6 text-muted-foreground max-sm:inline-block" />
+                    <h1 className='max-sm:hidden text-2xl font-bold tracking-tight  cursor-pointer'>Task Master</h1>
+                </Link>
                 <div className="md:flex md:flex-1 md:items-center md:justify-end md:gap-4">
                     <SearchBar />
                 </div>
@@ -87,9 +88,10 @@ const NavbarSkeleton = () => {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">
-                <div className="flex items-center gap-2 md:gap-4">
-                    <h1 className='text-2xl font-bold tracking-tight'>Task Master</h1>
-                </div>
+                <Link href="/" className="flex items-center gap-2 md:gap-4 cursor-pointer">
+                    <Home className="hidden h-6 w-6 text-muted-foreground max-sm:inline-block" />
+                    <h1 className='text-2xl font-bold tracking-tight max-sm:hidden'>Task Master</h1>
+                </Link>
 
                 <div className="flex items-center gap-2">
                     <ModeToggle />
