@@ -38,6 +38,62 @@ export class AuthService {
       const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '6h' })
       await this.authTokenService.storeToken(accessToken, user.id, 21600);
 
+      const welcomeMessage = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background: #f9fafb;
+              margin: 0;
+              padding: 40px 20px;
+              color: #111827;
+            }
+            .container {
+              max-width: 600px;
+              margin: auto;
+              background: white;
+              border-radius: 8px;
+              padding: 30px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+            .header {
+              font-size: 24px;
+              font-weight: bold;
+              color: #2563eb;
+            }
+            .message {
+              margin-top: 20px;
+              font-size: 16px;
+              line-height: 1.6;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">🎉 Welcome to Task Master!</div>
+            <div class="message">
+              <p>Hi ${user.name},</p>
+              <p>
+                We're thrilled to have you on board. Start organizing, tracking, and
+                completing your tasks efficiently with Task Master.
+              </p>
+              <p>
+                Explore your dashboard and take full control of your productivity.
+              </p>
+              <p>Cheers,<br />The Task Master Team</p>
+            </div>
+          </div>
+        </body>
+      </html>
+`
+      await this.mailService.sendMail(
+        dto.email,
+        'Welcome to Task Master',
+        'Welcome to Task Master',
+        welcomeMessage
+      );
       const { password, ...safeUser } = user;
       return { user: safeUser, accessToken };
 
@@ -202,6 +258,64 @@ export class AuthService {
       await this.prisma.user.delete({ where: { id } });
       const { count } = await this.prisma.task.deleteMany({ where: { creatorId: id } });
 
+      const goodbyeMessage = `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background: #f9fafb;
+              margin: 0;
+              padding: 40px 20px;
+              color: #111827;
+            }
+            .container {
+              max-width: 600px;
+              margin: auto;
+              background: white;
+              border-radius: 8px;
+              padding: 30px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+            .header {
+              font-size: 24px;
+              font-weight: bold;
+              color: #dc2626;
+            }
+            .message {
+              margin-top: 20px;
+              font-size: 16px;
+              line-height: 1.6;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">👋 Goodbye from Task Master</div>
+            <div class="message">
+              <p>Hi ${user.name},</p>
+              <p>
+                Your account has been successfully deleted from Task Master. We're
+                sorry to see you go.
+              </p>
+              <p>
+                If this was a mistake or you change your mind, you're always welcome
+                back!
+              </p>
+              <p>Take care,<br />The Task Master Team</p>
+            </div>
+          </div>
+        </body>
+      </html>
+`
+      await this.mailService.sendMail(
+        user.email,
+        'Goodbye from Task Master',
+        'Goodbye from Task Master',
+        goodbyeMessage
+      );
+
       return { message: 'Account deleted successfully', deletedTasks: count };
     } catch (error) {
       this.logger.error(error.message, error.stack);
@@ -234,29 +348,38 @@ export class AuthService {
       const formattedOTP = formatOTP(OTP);
 
       const htmlMessage = `
-                        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
-                          <h2 style="color: #2a9d8f;">Password Reset OTP</h2>
-                          <p>Hello ${user.name},</p>
-                          <p>Your one-time password (OTP) to reset your password is:</p>
-                          <div style="
-                            font-size: 28px;
-                            font-weight: bold;
-                            letter-spacing: 0.15em;
-                            background: #e0f7f1;
-                            padding: 12px 20px;
-                            border-radius: 6px;
-                            display: inline-block;
-                            margin: 20px 0;
-                            ">
-                            ${formattedOTP}
-                          </div>
-                          <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
-                          <p>Thank you,<br/>Task Master Support Team</p>
-                        </div>
-                      `;
+  <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
+    <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
+      <h2 style="color: #2a9d8f; margin-bottom: 20px;">🔐 Password Reset OTP</h2>
+      <p style="font-size: 16px;">Hello <strong>${user.name}</strong>,</p>
+      <p style="font-size: 16px; margin-top: 10px;">
+        Your one-time password (OTP) to reset your password is:
+      </p>
+      <div style="
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        background: #e0f7f1;
+        color: #065f46;
+        padding: 14px 24px;
+        border-radius: 6px;
+        display: inline-block;
+        margin: 20px 0;
+      ">
+        ${formattedOTP}
+      </div>
+      <p style="font-size: 16px;">This OTP is valid for <strong>10 minutes</strong>. Please do not share it with anyone.</p>
+      <p style="font-size: 16px; margin-top: 30px;">
+        Thank you,<br />
+        <span style="color: #6b7280;">Task Master Support Team</span>
+      </p>
+    </div>
+  </div>
+`;
+
 
       await this.mailService.sendMail(
-        'topfateson@gmail.com',
+        email,
         'Password Reset OTP',
         `Your OTP is ${formattedOTP}`,
         htmlMessage
@@ -298,6 +421,73 @@ export class AuthService {
         where: { email: dto.email },
         data: { password: hashedPassword },
       });
+
+      const passwordResetMessage = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background: #f9fafb;
+              margin: 0;
+              padding: 40px 20px;
+              color: #111827;
+            }
+            .container {
+              max-width: 600px;
+              margin: auto;
+              background: #ffffff;
+              border-radius: 8px;
+              padding: 30px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+            .header {
+              font-size: 22px;
+              font-weight: 600;
+              color: #16a34a;
+            }
+            .message {
+              margin-top: 20px;
+              font-size: 16px;
+              line-height: 1.6;
+            }
+            .warning {
+              color: #dc2626;
+              font-weight: 500;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">🔐 Your Password Was Changed</div>
+            <div class="message">
+              <p>Hi ${user.name},</p>
+              <p>
+                We wanted to let you know that your password was successfully updated.
+              </p>
+              <p>
+                If you made this change, no further action is needed.
+                <br />
+                <span class="warning">
+                  If you did not change your password, please reset it immediately and contact support.
+                </span>
+              </p>
+              <p>
+                Stay secure,<br />
+                The Task Master Team
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+      `
+      await this.mailService.sendMail(
+        dto.email,
+        'Password Reset Confirmation',
+        'Your password has been reset',
+        passwordResetMessage
+      );
 
       return { message: 'Password reset successfully' };
     } catch (error) {

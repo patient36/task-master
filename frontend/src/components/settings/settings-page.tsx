@@ -40,7 +40,9 @@ const deleteAccountFormSchema = z.object({
 })
 
 export default function SettingsPage() {
-    const { updateUser, deleteAccount, logout,isLoading,isAuthenticated } = useAuth()
+    useAuthGuard()
+
+    const { updateUser, deleteAccount, logout, isLoading, isAuthenticated } = useAuth()
     const [nameSuccess, setNameSuccess] = useState(false)
     const [emailSuccess, setEmailSuccess] = useState(false)
     const [passwordSuccess, setPasswordSuccess] = useState(false)
@@ -50,8 +52,7 @@ export default function SettingsPage() {
     const [error, setError] = useState("")
     const router = useRouter()
 
-    useAuthGuard()
-    if (isLoading || !isAuthenticated) return <Spinner />
+
 
     const nameForm = useForm<z.infer<typeof nameFormSchema>>({
         resolver: zodResolver(nameFormSchema),
@@ -155,7 +156,7 @@ export default function SettingsPage() {
             },
         })
     }
-
+    if (isLoading || !isAuthenticated) return <Spinner />
     return (
         <div className="container w-full py-10">
             <h1 className="text-3xl font-bold mb-6">Account Settings</h1>

@@ -28,7 +28,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Task, TaskStats } from "@/lib/types"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { NewTaskModal } from "@/components/dashboard/new-task-modal"
 import { TaskViewModal } from "@/components/dashboard/task-view-modal"
 import { EditTaskModal } from "@/components/dashboard/edit-task-modal"
@@ -40,173 +40,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface TaskDashboardProps {
   tasks: Task[]
   stats: TaskStats
-  onFetchTasks?: (status: string | null, page: number, limit: number) => Promise<{ tasks: Task[]; total: number }>
-  currentPage?: number
-  itemsPerPage?: number
-  onPageChange?: (page: number) => void
-  onItemsPerPageChange?: (limit: number) => void
-  onStatusChange?: (status: string | null) => void
-  isLoading?: boolean
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
+  onItemsPerPageChange: (limit: number) => void
+  onStatusChange: (status: string | null) => void
+  isLoading: boolean
 }
 
 export function TaskDashboard({
-  tasks: initialTasks,
-  stats: initialStats,
-  onFetchTasks,
-  currentPage: externalPage,
-  itemsPerPage: externalLimit,
-  onPageChange: externalPageChange,
-  onItemsPerPageChange: externalLimitChange,
-  onStatusChange: externalStatusChange,
-  isLoading: externalLoading = false,
+  tasks,
+  stats,
+  totalPages,
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  onPageChange,
+  onItemsPerPageChange,
+  onStatusChange,
+  isLoading,
 }: TaskDashboardProps) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [stats, setStats] = useState<TaskStats>(initialStats)
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskViewModalOpen, setIsTaskViewModalOpen] = useState(false)
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
 
-  const [internalPage, setInternalPage] = useState(1)
-  const [internalLimit, setInternalLimit] = useState(5)
-  const [internalLoading, setInternalLoading] = useState(false)
-
-  // Use external or internal state based on what's provided
-  const currentPage = externalPage !== undefined ? externalPage : internalPage
-  const itemsPerPage = externalLimit !== undefined ? externalLimit : internalLimit
-  const isLoading = externalLoading || internalLoading
-
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalItems, setTotalItems] = useState(initialTasks.length)
-  const [activeTab, setActiveTab] = useState("all")
-
   const handleTabChange = (value: string) => {
-    setActiveTab(value)
-
     const statusValue = value === "all" ? null : value.toUpperCase()
-
-    if (externalStatusChange) {
-      externalStatusChange(statusValue)
-    } else {
-      setInternalPage(1)
-    }
+    onStatusChange(statusValue)
   }
 
-  // Update the handlePageChange function to use external handler if provided
   const handlePageChange = (page: number) => {
-    if (externalPageChange) {
-      externalPageChange(page)
-    } else {
-      setInternalPage(page)
-    }
+    onPageChange(page)
   }
 
   const handleItemsPerPageChange = (value: string) => {
     const newItemsPerPage = Number.parseInt(value, 10)
-
-    if (externalLimitChange) {
-      externalLimitChange(newItemsPerPage)
-    } else {
-      setInternalLimit(newItemsPerPage)
-      setInternalPage(1) // Reset to first page when changing items per page
-    }
-  }
-
-  // Fetch tasks when page or tab changes
-  useEffect(() => {
-    if (onFetchTasks) {
-      fetchTasks()
-    } else {
-      // If no fetch function provided, use the initial tasks and filter by status
-      const filteredTasks = filterTasksByStatus(initialTasks, activeTab)
-      const total = filteredTasks.length
-      const start = (currentPage - 1) * itemsPerPage
-      const end = start + itemsPerPage
-
-      setTasks(filteredTasks.slice(start, end))
-      setTotalItems(total)
-      setTotalPages(Math.ceil(total / itemsPerPage))
-    }
-  }, [currentPage, activeTab, itemsPerPage, onFetchTasks, initialTasks])
-
-  const filterTasksByStatus = (tasks: Task[], status: string): Task[] => {
-    if (status === "all") return tasks
-    return tasks.filter((task) => task.status === status.toUpperCase())
-  }
-
-  const fetchTasks = async () => {
-    if (!onFetchTasks) return
-
-    setInternalLoading(true)
-    try {
-      const status = activeTab === "all" ? null : activeTab.toUpperCase()
-      const result = await onFetchTasks(status, currentPage, itemsPerPage)
-
-      setTasks(result.tasks)
-      setTotalItems(result.total)
-      setTotalPages(Math.ceil(result.total / itemsPerPage))
-    } catch (error) {
-      console.error("Error fetching tasks:", error)
-      toast.error("Failed to fetch tasks")
-    } finally {
-      setInternalLoading(false)
-    }
+    onItemsPerPageChange(newItemsPerPage)
   }
 
   const handleAddTask = (newTask: Task) => {
-    if (onFetchTasks) {
-      // If using external data source, refetch tasks
-      fetchTasks()
-    } else {
-      const updatedTasks = [...tasks, newTask]
-      setTasks(updatedTasks)
-    }
+    return null
   }
 
   const handleSaveTask = (updatedTask: Task) => {
-    if (onFetchTasks) {
-      // If using external data source, refetch tasks
-      fetchTasks()
-    } else {
-      const updatedTasks = tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-      setTasks(updatedTasks)
-    }
+    return null
   }
 
   const handleEditTask = (task: Task) => {
-    console.log("Edit task called with:", task)
     setSelectedTask(task)
     setIsEditTaskModalOpen(true)
-    // Close the TaskViewModal if it's open
     if (isTaskViewModalOpen) {
       setIsTaskViewModalOpen(false)
     }
   }
 
   const handleStatusChange = (taskId: string, newStatus: string) => {
-    if (onFetchTasks) {
-      // If using external data source, refetch tasks
-      fetchTasks()
-      toast.success(`Task marked as ${newStatus.toLowerCase()}`)
-    } else {
-      const updatedTasks = tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus as "PENDING" | "COMPLETED" | "OVERDUE" | "CANCELLED" } : task,
-      )
-      setTasks(updatedTasks)
-      toast.success(`Task marked as ${newStatus.toLowerCase()}`)
-    }
+    return null
   }
 
   const handleDeleteTask = (taskId: string) => {
-    if (onFetchTasks) {
-      // If using external data source, refetch tasks
-      fetchTasks()
-      toast.success("Task deleted successfully!")
-    } else {
-      const updatedTasks = tasks.filter((task) => task.id !== taskId)
-      setTasks(updatedTasks)
-      toast.success("Task deleted successfully!")
-    }
+    return null
   }
 
   // Generate pagination controls
@@ -216,7 +112,8 @@ export function TaskDashboard({
     const pages = []
     const maxVisiblePages = 5
 
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    const safeCurrentPage = currentPage ?? 1
+    let startPage = Math.max(1, safeCurrentPage - Math.floor(maxVisiblePages / 2))
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
 
     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -229,8 +126,8 @@ export function TaskDashboard({
         key="prev"
         variant="outline"
         size="sm"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1 || isLoading}
+        onClick={() => handlePageChange((currentPage ?? 1) - 1)}
+        disabled={(currentPage ?? 1) === 1 || isLoading}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>,
@@ -303,8 +200,8 @@ export function TaskDashboard({
         key="next"
         variant="outline"
         size="sm"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages || isLoading}
+        onClick={() => handlePageChange((currentPage ?? 1) + 1)}
+        disabled={(currentPage ?? 1) === totalPages || isLoading}
       >
         <ChevronRight className="h-4 w-4" />
       </Button>,
@@ -317,7 +214,7 @@ export function TaskDashboard({
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Show</span>
-        <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+        <Select value={(itemsPerPage ?? 5).toString()} onValueChange={handleItemsPerPageChange}>
           <SelectTrigger className="w-[70px] h-8">
             <SelectValue placeholder="5" />
           </SelectTrigger>
@@ -703,13 +600,12 @@ function TaskItem({ task, onViewTask, onEditTask, onDeleteTask, onMarkCompleted 
               {task.priority && (
                 <div className="ml-4 flex items-center">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      task.priority === "HIGH"
-                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        : task.priority === "NORMAL"
-                          ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    }`}
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${task.priority === "HIGH"
+                      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      : task.priority === "NORMAL"
+                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      }`}
                   >
                     {task.priority}
                   </span>

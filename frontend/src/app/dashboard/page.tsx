@@ -1,55 +1,48 @@
 "use client"
+
+import { useState, useCallback } from "react"
 import { TaskDashboard } from "@/components/task-dashboard"
-import { useTasks } from "@/hooks/useTasks"
-import { useAuthGuard } from "@/hooks/useAuthGuard"
-import { useAuth } from "@/hooks/useAuth"
 import Spinner from "@/components/ui/spinner"
-import { useState } from "react"
+import { useTasks } from "@/hooks/useTasks"
+import { useAuth } from "@/hooks/useAuth"
+import { useAuthGuard } from "@/hooks/useAuthGuard"
 
 export default function DashboardPage() {
-  const { isLoading, isAuthenticated, userData } = useAuth()
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [status, setStatus] = useState<string | null>(null)
-  const tasksData = useTasks(page, limit, status)
-  useAuthGuard()
+    useAuthGuard()
 
-  if (isLoading || !isAuthenticated) return <Spinner />
+    const { isLoading: authLoading, isAuthenticated } = useAuth()
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const [status, setStatus] = useState<string | null>(null)
 
-  const handlePageChange = (page: number) => {
-    setPage(page)
-  }
+    const { data, isLoading: tasksLoading } = useTasks(page, limit, status)
 
-  const handleLimitChange = (limit: number) => {
-    setLimit(limit)
-    setPage(1)
-  }
+    const handlePageChange = useCallback((p: number) => setPage(p), [])
+    const handleLimitChange = useCallback((l: number) => {
+        setLimit(l)
+        setPage(1)
+    }, [])
+    const handleStatusChange = useCallback((s: string | null) => {
+        setStatus(s)
+        setPage(1)
+    }, [])
 
-  const handleStatusChange = (newStatus: string | null) => {
-    setStatus(newStatus)
-    setPage(1)
-  }
+    if (authLoading || !isAuthenticated || tasksLoading || !data) return <Spinner />
 
-  const fetchTasks = async (statusFilter: string | null, pageNum: number, limitNum: number) => {
-    return {
-      tasks: tasksData.data.tasks || [],
-      total: userData.tasks.total || 0,
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <TaskDashboard
-        tasks={tasksData.data.tasks || []}
-        stats={userData.tasks}
-        onFetchTasks={fetchTasks}
-        currentPage={page}
-        itemsPerPage={limit}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleLimitChange}
-        onStatusChange={handleStatusChange}
-        isLoading={tasksData.isLoading}
-      />
-    </div>
-  )
+    return (
+        <div className="min-h-screen bg-background">
+            <TaskDashboard
+                tasks={data.tasks || []}
+                stats={data.stats}
+                totalPages={data.totalPages}
+                totalItems={data.total}
+                currentPage={page}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleLimitChange}
+                onStatusChange={handleStatusChange}
+                isLoading={tasksLoading}
+            />
+        </div>
+    )
 }

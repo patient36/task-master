@@ -44,17 +44,17 @@ export class TasksService {
     }
   }
 
-  async findAll(page = 1, limit = 20, AuthedUser: AuthedUser, status?: string,) {
+  async findAll(page = 1, limit = 20, authedUser: AuthedUser, status?: string) {
     try {
       const safePage = Math.max(1, page);
       const skip = (safePage - 1) * limit;
 
-      const where: any = {
-        creatorId: AuthedUser.id,
-        ...(status && { status }),
-      };
+      const baseWhere = { creatorId: authedUser.id };
+      const where = status ? { ...baseWhere, status: status as TaskStatus } : baseWhere;
 
-      const [tasks, total] = await Promise.all([
+      const statuses = ['PENDING', 'COMPLETED', 'OVERDUE', 'CANCELLED'] as const;
+
+      const [tasks, total, ...statusCounts] = await Promise.all([
         this.prisma.task.findMany({
           where,
           skip,
@@ -62,16 +62,27 @@ export class TasksService {
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.task.count({ where }),
+        ...statuses.map((s) =>
+          this.prisma.task.count({ where: { ...baseWhere, status: s } })
+        ),
       ]);
+
+      const stats = Object.fromEntries(
+        statuses.map((s, i) => [s.toLowerCase(), statusCounts[i]])
+      );
+      const totalPages = Math.ceil(total / limit);
+
+      stats.total = await this.prisma.task.count({ where: baseWhere });
 
       return {
         page: safePage,
         limit,
         size: tasks.length,
+        totalPages,
         total,
+        stats,
         tasks,
       };
-
     } catch (error) {
       this.logger.error(error.message, error.stack);
 
@@ -86,6 +97,7 @@ export class TasksService {
       );
     }
   }
+
 
   async findOne(id: string, AuthedUser: AuthedUser) {
     try {
