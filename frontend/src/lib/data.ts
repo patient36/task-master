@@ -66,7 +66,89 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
             dueDate: "2023-06-05",
             priority: "HIGH",
         },
+        {
+            id: "task-9",
+            title: "Write unit tests",
+            description: "Create unit tests for core functionality",
+            status: "OVERDUE",
+            priority: "NORMAL",
+            dueDate: "2025-05-17",
+        },
+        {
+            id: "task-10",
+            title: "Deploy to production",
+            description: "Deploy the latest changes to production",
+            status: "PENDING",
+            priority: "HIGH",
+            dueDate: "2025-05-31",
+        },
+        
+        {
+            id: "task-11",
+            title: "Complete project proposal",
+            description: "Draft and finalize the project proposal for the client meeting",
+            status: "PENDING",
+            priority: "HIGH",
+            dueDate: "2025-05-25",
+        },
+        {
+            id: "task-12",
+            title: "Review design mockups",
+            description: "Review and provide feedback on the latest design mockups",
+            status: "COMPLETED",
+            priority: "NORMAL",
+            dueDate: "2025-05-20",
+        },
+        {
+            id: "task-13",
+            title: "Fix navigation bug",
+            description: "Address the navigation issue reported in the mobile app",
+            status: "OVERDUE",
+            priority: "HIGH",
+            dueDate: "2025-05-18",
+        },
+        {
+            id: "task-14",
+            title: "Update documentation",
+            description: "Update the API documentation with the latest changes",
+            status: "PENDING",
+            priority: "LOW",
+            dueDate: "2025-05-30",
+        },
+        {
+            id: "task-15",
+            title: "Client meeting preparation",
+            description: "Prepare slides and talking points for the upcoming client meeting",
+            status: "CANCELLED",
+            priority: "NORMAL",
+            dueDate: "2025-05-22",
+        },
+        {
+            id: "task-16",
+            title: "Implement user authentication",
+            description: "Add user authentication to the application",
+            status: "PENDING",
+            priority: "HIGH",
+            dueDate: "2025-05-28",
+        },
+        {
+            id: "task-17",
+            title: "Create dashboard UI",
+            description: "Design and implement the dashboard UI",
+            status: "COMPLETED",
+            priority: "NORMAL",
+            dueDate: "2025-05-15",
+        },
+        {
+            id: "task-18",
+            title: "Optimize database queries",
+            description: "Improve performance of database queries",
+            status: "PENDING",
+            priority: "HIGH",
+            dueDate: "2025-05-29",
+        },
     ]
+
 
     const stats: TaskStats = {
         total: tasks.length,
@@ -77,12 +159,4 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
     }
 
     return { tasks, stats }
-}
-
-export const user = {
-    id: "user-1",
-    name: "Hubert Blaine Wolfeschlegelsteinhausenbergerdorff",
-    email: "hubert.wolfeschlegelstein@example.com",
-    createdAt: "2023-01-15T00:00:00Z",
-    role: "ADMIN",
 }

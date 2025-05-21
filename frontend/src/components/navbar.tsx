@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, Home, User2 } from 'lucide-react'
+import { ChevronDown, User2 } from 'lucide-react'
 import Link from "next/link"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -13,7 +13,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ModeToggle } from "@/components/mode-toggle"
-import { SearchBar } from './search-bar'
 import { useAuth } from "@/hooks/useAuth"
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
@@ -40,14 +39,9 @@ export function Navbar() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 md:gap-4 ">
-                    <Home className="hidden h-6 w-6 text-muted-foreground max-sm:inline-block" />
-                    <h1 className='max-sm:hidden text-2xl font-bold tracking-tight  cursor-pointer'>Task Master</h1>
+                <Link href="/" className="max-sm:text-xl text-2xl font-bold tracking-tight  cursor-pointer">
+                    Task Master
                 </Link>
-                <div className="md:flex md:flex-1 md:items-center md:justify-end md:gap-4">
-                    <SearchBar />
-                </div>
-
                 <div className="flex items-center gap-2">
                     <ModeToggle />
 
@@ -88,9 +82,8 @@ const NavbarSkeleton = () => {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 md:gap-4 cursor-pointer">
-                    <Home className="hidden h-6 w-6 text-muted-foreground max-sm:inline-block" />
-                    <h1 className='text-2xl font-bold tracking-tight max-sm:hidden'>Task Master</h1>
+                <Link href="/" className="max-sm:text-xl text-2xl font-bold tracking-tight  cursor-pointer">
+                    Task Master
                 </Link>
 
                 <div className="flex items-center gap-2">
