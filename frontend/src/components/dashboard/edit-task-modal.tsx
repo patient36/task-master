@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CalendarIcon, Loader2 } from "lucide-react"
-import { format } from "date-fns"
+import { format, parse } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -24,10 +24,13 @@ import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import type { Task } from "@/lib/types"
 
-interface NewTaskModalProps {
+interface EditTaskModalProps {
     isOpen: boolean
     onClose: () => void
+    task: Task | null
+    onSave: (updatedTask: Task) => void
 }
 
 const formSchema = z.object({
@@ -50,14 +53,10 @@ const formSchema = z.object({
     }),
     priority: z.enum(["low", "medium", "high"], {
         required_error: "Please select a priority.",
-    }),
-    assignee: z.string().optional(),
-    status: z.enum(["todo", "in-progress", "completed", "overdue"], {
-        required_error: "Please select a status.",
-    }),
+    })
 })
 
-export function NewTaskModal({ isOpen, onClose }: NewTaskModalProps) {
+export function EditTaskModal({ isOpen, onClose, task, onSave }: EditTaskModalProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -65,31 +64,121 @@ export function NewTaskModal({ isOpen, onClose }: NewTaskModalProps) {
         defaultValues: {
             title: "",
             description: "",
-            status: "todo",
             priority: "medium",
-            assignee: "",
+            dueDate: new Date(),
         },
     })
 
+    // Map task status to form status
+    function mapTaskStatusToFormStatus(status: string): "todo" | "in-progress" | "completed" | "overdue" {
+        switch (status) {
+            case "PENDING":
+                return "todo"
+            case "COMPLETED":
+                return "completed"
+            case "OVERDUE":
+                return "overdue"
+            case "CANCELLED": // Map cancelled to completed for form compatibility
+                return "completed"
+            default:
+                return "todo"
+        }
+    }
+
+    // Map task priority to form priority
+    function mapTaskPriorityToFormPriority(priority: string | undefined): "low" | "medium" | "high" {
+        switch (priority) {
+            case "LOW":
+                return "low"
+            case "NORMAL":
+                return "medium"
+            case "HIGH":
+                return "high"
+            default:
+                return "medium"
+        }
+    }
+
+    // Map form status to task status
+    function mapFormStatusToTaskStatus(status: string): "PENDING" | "COMPLETED" | "OVERDUE" | "CANCELLED" {
+        switch (status) {
+            case "todo":
+            case "in-progress":
+                return "PENDING"
+            case "completed":
+                return "COMPLETED"
+            case "overdue":
+                return "OVERDUE"
+            default:
+                return "PENDING"
+        }
+    }
+
+    // Map form priority to task priority
+    function mapFormPriorityToTaskPriority(priority: string): "LOW" | "NORMAL" | "HIGH" {
+        switch (priority) {
+            case "low":
+                return "LOW"
+            case "medium":
+                return "NORMAL"
+            case "high":
+                return "HIGH"
+            default:
+                return "NORMAL"
+        }
+    }
+
+    // Populate form when task changes
+    useEffect(() => {
+        if (task) {
+            // Parse the date string to a Date object
+            let dueDate: Date
+            try {
+                dueDate = parse(task.dueDate, "yyyy-MM-dd", new Date())
+            } catch (error) {
+                dueDate = new Date()
+            }
+
+            form.reset({
+                title: task.title,
+                description: task.description || "",
+                dueDate: dueDate,
+                priority: mapTaskPriorityToFormPriority(task.priority)
+            })
+        }
+    }, [task, form])
+
     function onSubmit(values: z.infer<typeof formSchema>) {
+        if (!task) return
+
         setIsSubmitting(true)
+
+        // Convert form values to task format
+        const updatedTask: Task = {
+            ...task,
+            title: values.title,
+            description: values.description || "",
+            dueDate: format(values.dueDate, "yyyy-MM-dd"),
+            priority: mapFormPriorityToTaskPriority(values.priority)
+        }
 
         // Simulate API call
         setTimeout(() => {
-            console.log(values)
+            onSave(updatedTask)
             setIsSubmitting(false)
-            toast.success("Task created successfully!")
-            form.reset()
+            toast.success("Task updated successfully!")
             onClose()
         }, 1000)
     }
+
+    if (!task) return null
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[525px]">
                 <DialogHeader>
-                    <DialogTitle>Create New Task</DialogTitle>
-                    <DialogDescription>Add a new task to your dashboard. Fill out the details below.</DialogDescription>
+                    <DialogTitle>Edit Task</DialogTitle>
+                    <DialogDescription>Make changes to the task details below.</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -178,10 +267,10 @@ export function NewTaskModal({ isOpen, onClose }: NewTaskModalProps) {
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
+                                        Saving...
                                     </>
                                 ) : (
-                                    "Create Task"
+                                    "Save Changes"
                                 )}
                             </Button>
                         </DialogFooter>

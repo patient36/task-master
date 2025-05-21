@@ -24,7 +24,13 @@ export const getCurrentUser = async () => {
     try {
         const response = await axios.get("auth/me");
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
+        if (
+            error.message?.toLowerCase().includes("unauthorized") ||
+            error.message?.toLowerCase().includes("token")
+        ) {
+            return null;
+        }
         throw error;
     }
 };

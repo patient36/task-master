@@ -105,7 +105,7 @@ export class AuthService {
       const overDueTasks = await this.prisma.task.count({ where: { creatorId: user.id, status: 'OVERDUE' } });
 
 
-      const tasks = { cancelled: cancelledTasks, pending: pendingTasks, completed: completedTasks, overdue: overDueTasks };
+      const tasks = { cancelled: cancelledTasks, pending: pendingTasks, completed: completedTasks, overdue: overDueTasks, total: cancelledTasks + pendingTasks + completedTasks + overDueTasks };
 
       const { password, ...safeUser } = dbUser;
       return { user: safeUser, tasks };

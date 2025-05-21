@@ -16,7 +16,4 @@ export interface TaskStats {
   completed: number
   pending: number
   overdue: number
-  highPriority: number
-  normalPriority: number
-  lowPriority: number
 }

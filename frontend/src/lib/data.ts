@@ -6,7 +6,7 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
             id: "task-1",
             title: "Complete project proposal",
             description: "Draft and submit the project proposal for client review",
-            status: "COMPLETED",
+            status: "CANCELLED",
             dueDate: "2023-05-10",
             priority: "HIGH",
         },
@@ -22,7 +22,7 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
             id: "task-3",
             title: "Implement authentication system",
             description: "Set up user authentication with JWT and role-based access control",
-            status: "PENDING",
+            status: "CANCELLED",
             dueDate: "2023-05-18",
             priority: "HIGH",
         },
@@ -46,7 +46,7 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
             id: "task-6",
             title: "Set up CI/CD pipeline",
             description: "Configure GitHub Actions for automated testing and deployment",
-            status: "PENDING",
+            status: "COMPLETED",
             dueDate: "2023-05-25",
             priority: "NORMAL",
         },
@@ -54,7 +54,7 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
             id: "task-7",
             title: "Conduct user testing",
             description: "Organize and conduct user testing sessions for the beta version",
-            status: "PENDING",
+            status: "COMPLETED",
             dueDate: "2023-05-30",
             priority: "NORMAL",
         },
@@ -73,10 +73,7 @@ export function getTasksData(): { tasks: Task[]; stats: TaskStats } {
         pending: tasks.filter((task) => task.status === "PENDING").length,
         completed: tasks.filter((task) => task.status === "COMPLETED").length,
         overdue: tasks.filter((task) => task.status === "OVERDUE").length,
-        cancelled: tasks.filter((task) => task.status === "CANCELLED").length,
-        highPriority: tasks.filter((task) => task.priority === "HIGH").length,
-        normalPriority: tasks.filter((task) => task.priority === "NORMAL").length,
-        lowPriority: tasks.filter((task) => task.priority === "LOW").length,
+        cancelled: tasks.filter((task) => task.status === "CANCELLED").length
     }
 
     return { tasks, stats }
