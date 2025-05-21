@@ -8,3 +8,17 @@ export const useSearchTasks = (searchTerm: string) =>
         queryFn: () => searchTasks({ query: searchTerm }),
         enabled: !!searchTerm,
     });
+
+export const useTasks = (page: number, limit: number, status: string|null) => {
+    const taskQuery = useQuery({
+        queryKey: ['tasks', page, limit, status],
+        queryFn: () => getTasks({ page, limit, status })
+    });
+
+    return {
+        data: taskQuery.data,
+        isLoading: taskQuery.isLoading,
+        isError: taskQuery.isError,
+        error: taskQuery.error,
+    }
+}

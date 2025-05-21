@@ -1,14 +1,15 @@
 import axios from "@/util/axios.config";
 
-export const getTasks = async () => {
+export const getTasks = async ({ page, limit, status }: { page: number; limit: number; status: string | null }) => {
     try {
-        const response = await axios.get("/tasks");
+        const response = await axios.get('/tasks/all', { params: { page, limit, status } });
         return response.data;
     } catch (error) {
         console.error("Error fetching tasks:", error);
         throw error;
     }
 };
+
 export const createTask = async (taskData: any) => {
     try {
         const response = await axios.post("/tasks", taskData);
@@ -48,7 +49,7 @@ export const getTaskById = async (taskId: string) => {
     }
 };
 
-export const searchTasks = async (params:{query: string}) => {
+export const searchTasks = async (params: { query: string }) => {
     try {
         const response = await axios.get(`/tasks/search`, {
             params: params,

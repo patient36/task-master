@@ -41,23 +41,76 @@ interface TaskDashboardProps {
   tasks: Task[]
   stats: TaskStats
   onFetchTasks?: (status: string | null, page: number, limit: number) => Promise<{ tasks: Task[]; total: number }>
+  currentPage?: number
+  itemsPerPage?: number
+  onPageChange?: (page: number) => void
+  onItemsPerPageChange?: (limit: number) => void
+  onStatusChange?: (status: string | null) => void
+  isLoading?: boolean
 }
 
-export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: TaskDashboardProps) {
+export function TaskDashboard({
+  tasks: initialTasks,
+  stats: initialStats,
+  onFetchTasks,
+  currentPage: externalPage,
+  itemsPerPage: externalLimit,
+  onPageChange: externalPageChange,
+  onItemsPerPageChange: externalLimitChange,
+  onStatusChange: externalStatusChange,
+  isLoading: externalLoading = false,
+}: TaskDashboardProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  // const [stats, setStats] = useState<TaskStats>(initialStats)
+  const [stats, setStats] = useState<TaskStats>(initialStats)
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskViewModalOpen, setIsTaskViewModalOpen] = useState(false)
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
+  const [internalPage, setInternalPage] = useState(1)
+  const [internalLimit, setInternalLimit] = useState(5)
+  const [internalLoading, setInternalLoading] = useState(false)
+
+  // Use external or internal state based on what's provided
+  const currentPage = externalPage !== undefined ? externalPage : internalPage
+  const itemsPerPage = externalLimit !== undefined ? externalLimit : internalLimit
+  const isLoading = externalLoading || internalLoading
+
   const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(5)
   const [totalItems, setTotalItems] = useState(initialTasks.length)
   const [activeTab, setActiveTab] = useState("all")
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+
+    const statusValue = value === "all" ? null : value.toUpperCase()
+
+    if (externalStatusChange) {
+      externalStatusChange(statusValue)
+    } else {
+      setInternalPage(1)
+    }
+  }
+
+  // Update the handlePageChange function to use external handler if provided
+  const handlePageChange = (page: number) => {
+    if (externalPageChange) {
+      externalPageChange(page)
+    } else {
+      setInternalPage(page)
+    }
+  }
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = Number.parseInt(value, 10)
+
+    if (externalLimitChange) {
+      externalLimitChange(newItemsPerPage)
+    } else {
+      setInternalLimit(newItemsPerPage)
+      setInternalPage(1) // Reset to first page when changing items per page
+    }
+  }
 
   // Fetch tasks when page or tab changes
   useEffect(() => {
@@ -74,7 +127,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
       setTotalItems(total)
       setTotalPages(Math.ceil(total / itemsPerPage))
     }
-  }, [currentPage, activeTab, itemsPerPage, onFetchTasks])
+  }, [currentPage, activeTab, itemsPerPage, onFetchTasks, initialTasks])
 
   const filterTasksByStatus = (tasks: Task[], status: string): Task[] => {
     if (status === "all") return tasks
@@ -82,10 +135,12 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
   }
 
   const fetchTasks = async () => {
-    setIsLoading(true)
+    if (!onFetchTasks) return
+
+    setInternalLoading(true)
     try {
       const status = activeTab === "all" ? null : activeTab.toUpperCase()
-      const result = await onFetchTasks!(status, currentPage, itemsPerPage)
+      const result = await onFetchTasks(status, currentPage, itemsPerPage)
 
       setTasks(result.tasks)
       setTotalItems(result.total)
@@ -94,23 +149,8 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
       console.error("Error fetching tasks:", error)
       toast.error("Failed to fetch tasks")
     } finally {
-      setIsLoading(false)
+      setInternalLoading(false)
     }
-  }
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value)
-    setCurrentPage(1) // Reset to first page when changing tabs
-  }
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
-
-  const handleItemsPerPageChange = (value: string) => {
-    const newItemsPerPage = Number.parseInt(value, 10)
-    setItemsPerPage(newItemsPerPage)
-    setCurrentPage(1) // Reset to first page when changing items per page
   }
 
   const handleAddTask = (newTask: Task) => {
@@ -273,7 +313,6 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
     return <div className="flex justify-center mt-6 gap-2">{pages}</div>
   }
 
-  // Render items per page selector
   const renderItemsPerPageSelector = () => {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -311,7 +350,6 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
               <div className="flex items-center gap-4">
                 <SearchBar
                   onViewTask={(task) => {
-                    console.log("Search result clicked:", task) // Add logging for debugging
                     setSelectedTask(task)
                     setIsTaskViewModalOpen(true)
                   }}
@@ -414,7 +452,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
                       Showing {tasks.length} of {totalItems} tasks
                     </div>
                     {renderPagination()}
-                    <div className="w-[150px]"></div> {/* Spacer for alignment */}
+                    <div className="w-[150px]"></div>
                   </div>
                 )}
               </TabsContent>
@@ -447,7 +485,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
                       Showing {tasks.length} of {totalItems} tasks
                     </div>
                     {renderPagination()}
-                    <div className="w-[150px]"></div> {/* Spacer for alignment */}
+                    <div className="w-[150px]"></div>
                   </div>
                 )}
               </TabsContent>
@@ -480,7 +518,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
                       Showing {tasks.length} of {totalItems} tasks
                     </div>
                     {renderPagination()}
-                    <div className="w-[150px]"></div> {/* Spacer for alignment */}
+                    <div className="w-[150px]"></div>
                   </div>
                 )}
               </TabsContent>
@@ -513,7 +551,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
                       Showing {tasks.length} of {totalItems} tasks
                     </div>
                     {renderPagination()}
-                    <div className="w-[150px]"></div> {/* Spacer for alignment */}
+                    <div className="w-[150px]"></div>
                   </div>
                 )}
               </TabsContent>
@@ -546,7 +584,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
                       Showing {tasks.length} of {totalItems} tasks
                     </div>
                     {renderPagination()}
-                    <div className="w-[150px]"></div> {/* Spacer for alignment */}
+                    <div className="w-[150px]"></div>
                   </div>
                 )}
               </TabsContent>
@@ -563,7 +601,7 @@ export function TaskDashboard({ tasks: initialTasks, stats, onFetchTasks }: Task
         isOpen={isTaskViewModalOpen}
         onClose={() => {
           setIsTaskViewModalOpen(false)
-          setSelectedTask(null) // Clear selected task when closing
+          setSelectedTask(null)
         }}
         task={selectedTask}
         onEdit={handleEditTask}
@@ -665,12 +703,13 @@ function TaskItem({ task, onViewTask, onEditTask, onDeleteTask, onMarkCompleted 
               {task.priority && (
                 <div className="ml-4 flex items-center">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${task.priority === "HIGH"
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                      task.priority === "HIGH"
                         ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                         : task.priority === "NORMAL"
                           ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                           : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                      }`}
+                    }`}
                   >
                     {task.priority}
                   </span>

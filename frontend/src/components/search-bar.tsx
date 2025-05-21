@@ -24,7 +24,6 @@ export function SearchBar({ onViewTask }: SearchBarProps) {
   const { data, isLoading } = useSearchTasks(debouncedQuery)
   const searchResults: Task[] = data?.tasks ?? []
 
-  // Map priority to appropriate icons
   const getPriorityIcon = (priority: string | undefined) => {
     if (!priority) return <ArrowRight className="h-4 w-4 text-muted-foreground" />
 
@@ -40,7 +39,6 @@ export function SearchBar({ onViewTask }: SearchBarProps) {
     }
   }
 
-  // Map status to appropriate icons
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "COMPLETED":
@@ -88,14 +86,12 @@ export function SearchBar({ onViewTask }: SearchBarProps) {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        // Immediately set search focused to false without timeout
                         setIsSearchFocused(false)
                         setSearchQuery("")
-                        // Call the onViewTask callback with the task
                         onViewTask(result)
                       }}
                       onMouseDown={(e) => {
-                        e.preventDefault() // Prevent the blur event from firing
+                        e.preventDefault()
                       }}
                     >
                       <span className="flex-1 truncate">{result.title}</span>

@@ -107,7 +107,7 @@ export function TaskViewModal({ isOpen, onClose, task, onEdit, onStatusChange, o
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="outline-none focus:outline-none">
                   <MoreHorizontal className="h-2 w-2" />
                   <span className="sr-only">Actions</span>
                 </Button>
