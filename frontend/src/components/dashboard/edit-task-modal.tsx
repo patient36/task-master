@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { CalendarIcon, Loader2 } from "lucide-react"
-import { format, parse } from "date-fns"
+import { format} from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -25,12 +25,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import type { Task } from "@/lib/types"
+import { useUpdateTask } from "@/hooks/useTasks"
 
 interface EditTaskModalProps {
   isOpen: boolean
   onClose: () => void
   task: Task | null
-  onSave: (updatedTask: Task) => void
 }
 
 const formSchema = z.object({
@@ -38,9 +38,6 @@ const formSchema = z.object({
     .string()
     .min(2, {
       message: "Title must be at least 2 characters.",
-    })
-    .max(50, {
-      message: "Title must not be longer than 50 characters.",
     }),
   description: z
     .string()
@@ -48,102 +45,36 @@ const formSchema = z.object({
       message: "Description must not be longer than 500 characters.",
     })
     .optional(),
-  dueDate: z.date({
+  dueTime: z.date({
     required_error: "Due date is required.",
   }),
-  priority: z.enum(["low", "medium", "high"], {
+  priority: z.enum(["LOW", "NORMAL", "HIGH"], {
     required_error: "Please select a priority.",
   }),
 })
 
-export function EditTaskModal({ isOpen, onClose, task, onSave }: EditTaskModalProps) {
+export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { updateTask } = useUpdateTask()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      priority: "medium",
-      dueDate: new Date(),
+      priority: "NORMAL",
+      dueTime: new Date(),
     },
   })
 
-  // Map task status to form status
-  function mapTaskStatusToFormStatus(status: string): "todo" | "in-progress" | "completed" | "overdue" {
-    switch (status) {
-      case "PENDING":
-        return "todo"
-      case "COMPLETED":
-        return "completed"
-      case "OVERDUE":
-        return "overdue"
-      case "CANCELLED": // Map cancelled to completed for form compatibility
-        return "completed"
-      default:
-        return "todo"
-    }
-  }
 
-  // Map task priority to form priority
-  function mapTaskPriorityToFormPriority(priority: string | undefined): "low" | "medium" | "high" {
-    switch (priority) {
-      case "LOW":
-        return "low"
-      case "NORMAL":
-        return "medium"
-      case "HIGH":
-        return "high"
-      default:
-        return "medium"
-    }
-  }
-
-  // Map form status to task status
-  function mapFormStatusToTaskStatus(status: string): "PENDING" | "COMPLETED" | "OVERDUE" | "CANCELLED" {
-    switch (status) {
-      case "todo":
-      case "in-progress":
-        return "PENDING"
-      case "completed":
-        return "COMPLETED"
-      case "overdue":
-        return "OVERDUE"
-      default:
-        return "PENDING"
-    }
-  }
-
-  // Map form priority to task priority
-  function mapFormPriorityToTaskPriority(priority: string): "LOW" | "NORMAL" | "HIGH" {
-    switch (priority) {
-      case "low":
-        return "LOW"
-      case "medium":
-        return "NORMAL"
-      case "high":
-        return "HIGH"
-      default:
-        return "NORMAL"
-    }
-  }
-
-  // Populate form when task changes
   useEffect(() => {
     if (task) {
-      // Parse the date string to a Date object
-      let dueDate: Date
-      try {
-        dueDate = parse(task.dueDate, "yyyy-MM-dd", new Date())
-      } catch (error) {
-        dueDate = new Date()
-      }
-
       form.reset({
         title: task.title,
         description: task.description || "",
-        dueDate: dueDate,
-        priority: mapTaskPriorityToFormPriority(task.priority),
+        dueTime: new Date(task.dueTime),
+        priority: task.priority,
       })
     }
   }, [task, form])
@@ -152,23 +83,17 @@ export function EditTaskModal({ isOpen, onClose, task, onSave }: EditTaskModalPr
     if (!task) return
 
     setIsSubmitting(true)
-
-    // Convert form values to task format
-    const updatedTask: Task = {
-      ...task,
-      title: values.title,
-      description: values.description || "",
-      dueDate: format(values.dueDate, "yyyy-MM-dd"),
-      priority: mapFormPriorityToTaskPriority(values.priority),
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-      onSave(updatedTask)
-      setIsSubmitting(false)
-      toast.success("Task updated successfully!")
-      onClose()
-    }, 1000)
+    updateTask({ taskId: task.id, taskData: { title: values.title, description: values.description, dueTime: values.dueTime.toISOString(), priority: values.priority } }, {
+      onSuccess: () => {
+        toast.success("Task updated successfully.")
+        setIsSubmitting(false)
+        onClose()
+      },
+      onError: (error) => {
+        toast.error("Failed to update task.")
+        setIsSubmitting(false)
+      },
+    })
   }
 
   if (!task) return null
@@ -211,7 +136,7 @@ export function EditTaskModal({ isOpen, onClose, task, onSave }: EditTaskModalPr
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="dueDate"
+                name="dueTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Due Date</FormLabel>
@@ -248,9 +173,9 @@ export function EditTaskModal({ isOpen, onClose, task, onSave }: EditTaskModalPr
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="LOW">LOW</SelectItem>
+                        <SelectItem value="NORMAL">NORMAL</SelectItem>
+                        <SelectItem value="HIGH">HIGH</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

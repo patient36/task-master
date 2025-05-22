@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,8 +31,6 @@ interface TaskViewModalProps {
 }
 
 export function TaskViewModal({ isOpen, onClose, task, onEdit, onStatusChange, onDelete }: TaskViewModalProps) {
-  const [isStatusChanging, setIsStatusChanging] = useState(false)
-
   if (!task) return null
 
   const getStatusIcon = () => {
@@ -76,7 +73,6 @@ export function TaskViewModal({ isOpen, onClose, task, onEdit, onStatusChange, o
   }
 
   const handleEditClick = () => {
-    console.log("Edit button clicked in TaskViewModal with task:", task)
     if (onEdit) {
       onEdit(task)
     }
@@ -107,31 +103,25 @@ export function TaskViewModal({ isOpen, onClose, task, onEdit, onStatusChange, o
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="outline-none focus:outline-none">
+                <Button variant="ghost" size="icon" className="mr-3 mt-[-20px]">
                   <MoreHorizontal className="h-2 w-2" />
                   <span className="sr-only">Actions</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEditClick}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Task
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
+                <DropdownMenuItem disabled={task.status === "COMPLETED"} onClick={() => handleStatusChange("COMPLETED")}>
                   <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
                   Mark as Completed
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("PENDING")}>
+                <Separator className="mb-1" />
+                <DropdownMenuItem disabled={task.status === "PENDING"} onClick={() => handleStatusChange("PENDING")}>
                   <Clock className="mr-2 h-4 w-4 text-blue-500" />
                   Mark as Pending
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("OVERDUE")}>
-                  <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
-                  Mark as Overdue
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("CANCELLED")}>
+                <Separator className="mb-1" />
+                <DropdownMenuItem disabled={task.status === "CANCELLED"} onClick={() => handleStatusChange("CANCELLED")}>
                   <XCircle className="mr-2 h-4 w-4" />
-                  Mark as Cancelled
+                  Cancel
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleDeleteTask} className="text-red-600 focus:text-red-600">
@@ -173,7 +163,7 @@ export function TaskViewModal({ isOpen, onClose, task, onEdit, onStatusChange, o
             <h4 className="text-sm font-medium mb-1">Due Date</h4>
             <div className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{formatDate(task.dueDate)}</span>
+              <span className="text-sm">{formatDate(task.dueTime)}</span>
             </div>
           </div>
         </div>

@@ -36,6 +36,8 @@ import { Toaster } from "react-hot-toast"
 import { toast } from "react-hot-toast"
 import { SearchBar } from "@/components/search-bar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatDate } from "@/util/formatDate"
+import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks"
 
 interface TaskDashboardProps {
   tasks: Task[]
@@ -66,6 +68,8 @@ export function TaskDashboard({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskViewModalOpen, setIsTaskViewModalOpen] = useState(false)
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
+  const { deleteTask } = useDeleteTask()
+  const { updateTask } = useUpdateTask()
 
   const handleTabChange = (value: string) => {
     const statusValue = value === "all" ? null : value.toUpperCase()
@@ -81,14 +85,6 @@ export function TaskDashboard({
     onItemsPerPageChange(newItemsPerPage)
   }
 
-  const handleAddTask = (newTask: Task) => {
-    return null
-  }
-
-  const handleSaveTask = (updatedTask: Task) => {
-    return null
-  }
-
   const handleEditTask = (task: Task) => {
     setSelectedTask(task)
     setIsEditTaskModalOpen(true)
@@ -98,14 +94,27 @@ export function TaskDashboard({
   }
 
   const handleStatusChange = (taskId: string, newStatus: string) => {
-    return null
+    updateTask({ taskId, taskData: { status: newStatus } }, {
+      onSuccess: () => {
+        toast.success("Task status updated successfully")
+      },
+      onError: () => {
+        toast.error("Failed to update task status")
+      },
+    })
   }
 
   const handleDeleteTask = (taskId: string) => {
-    return null
+    deleteTask(taskId, {
+      onSuccess: () => {
+        toast.success("Task deleted successfully")
+      },
+      onError: () => {
+        toast.error("Failed to delete task")
+      },
+    })
   }
 
-  // Generate pagination controls
   const renderPagination = () => {
     if (totalPages <= 1) return null
 
@@ -290,21 +299,19 @@ export function TaskDashboard({
                   <CardTitle className="text-sm font-medium">Overdue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.overdue}</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-2xl font-bold">{stats.overdue} <span className="text-xs font-light text-muted-foreground">
                     {stats.overdue > 0 ? "Requires attention" : "All tasks on schedule"}
-                  </p>
+                  </span></div>
+                  <Progress value={(stats.overdue / stats.total) * 100} className="mt-2" />
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+                  <CardTitle className="text-sm font-medium line-through">Cancelled </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.cancelled}</div>
-                  <p className={`text-xs text-muted-foreground ${stats.cancelled > 0 ? "line-through" : ""}`}>
-                    {stats.cancelled > 0 ? "Cancelled tasks" : "No tasks cancelled"}
-                  </p>
+                  <Progress value={(stats.cancelled / stats.total) * 100} className="mt-2" />
                 </CardContent>
               </Card>
             </div>
@@ -492,7 +499,6 @@ export function TaskDashboard({
       <NewTaskModal
         isOpen={isNewTaskModalOpen}
         onClose={() => setIsNewTaskModalOpen(false)}
-        onAddTask={handleAddTask}
       />
       <TaskViewModal
         isOpen={isTaskViewModalOpen}
@@ -509,7 +515,6 @@ export function TaskDashboard({
         isOpen={isEditTaskModalOpen}
         onClose={() => setIsEditTaskModalOpen(false)}
         task={selectedTask}
-        onSave={handleSaveTask}
       />
     </div>
   )
@@ -551,51 +556,12 @@ function TaskItem({ task, onViewTask, onEditTask, onDeleteTask, onMarkCompleted 
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <h3 className="font-medium">{task.title}</h3>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={handleDropdownClick}>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Actions</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onEditTask && onEditTask(task)
-                    }}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onMarkCompleted && onMarkCompleted(task.id)
-                    }}
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-                    Mark as completed
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteTask && onDeleteTask(task.id)
-                    }}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
             <p className="text-sm text-muted-foreground">{task.description}</p>
             <div className="mt-2 flex items-center text-xs text-muted-foreground">
               <div className="flex items-center">
                 <ListTodo className="mr-1 h-3 w-3" />
-                <span>Due: {task.dueDate}</span>
+                <span>Due: {formatDate(task.dueTime)}</span>
               </div>
               {task.priority && (
                 <div className="ml-4 flex items-center">

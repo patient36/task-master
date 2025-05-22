@@ -3,7 +3,7 @@ export interface Task {
   title: string
   description: string
   status: "COMPLETED" | "PENDING" | "CANCELLED" | "OVERDUE"
-  dueDate: string
+  dueTime: string
   priority?: "LOW" | "NORMAL" | "HIGH"
   creatorId?: string
   updatedAt?: string

@@ -25,11 +25,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import type { Task } from "@/lib/types"
+import { useCreateTask } from "@/hooks/useTasks"
 
 interface NewTaskModalProps {
   isOpen: boolean
   onClose: () => void
-  onAddTask: (task: Task) => void
 }
 
 const formSchema = z.object({
@@ -47,63 +47,52 @@ const formSchema = z.object({
       message: "Description must not be longer than 500 characters.",
     })
     .optional(),
-  dueDate: z.date({
+  dueTime: z.date({
     required_error: "Due date is required.",
   }),
-  priority: z.enum(["low", "medium", "high"], {
+  priority: z.enum(["LOW", "NORMAL", "HIGH"], {
     required_error: "Please select a priority.",
   }),
 })
 
-export function NewTaskModal({ isOpen, onClose, onAddTask }: NewTaskModalProps) {
+export function NewTaskModal({ isOpen, onClose }: NewTaskModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { addTask } = useCreateTask()
+  const minDate = new Date(Date.now() + 60 * 60 * 1000);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      priority: "medium",
-      dueDate: new Date(),
+      priority: "NORMAL",
+      dueTime: new Date(),
     },
   })
 
-  // Map form priority to task priority
-  function mapFormPriorityToTaskPriority(priority: string): "LOW" | "NORMAL" | "HIGH" {
-    switch (priority) {
-      case "low":
-        return "LOW"
-      case "medium":
-        return "NORMAL"
-      case "high":
-        return "HIGH"
-      default:
-        return "NORMAL"
-    }
-  }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
-
-    // Create a new task with a unique ID
-    const newTask: Task = {
-      id: `task-${Date.now()}`, // Generate a unique ID
-      title: values.title,
-      description: values.description || "",
-      status: "PENDING", // Default status
-      priority: mapFormPriorityToTaskPriority(values.priority),
-      dueDate: format(values.dueDate, "yyyy-MM-dd"),
-      createdAt: new Date().toISOString(),
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-      onAddTask(newTask)
-      setIsSubmitting(false)
-      toast.success("Task created successfully!")
-      form.reset()
-      onClose()
-    }, 1000)
+    console.log("Form values:", values)
+    addTask(
+      {
+        ...values,
+        description: values.description ?? "",
+        dueTime: values.dueTime.toISOString(),
+      },
+      {
+        onSuccess: (data) => {
+          toast.success("Task created successfully!")
+          setIsSubmitting(false)
+          resetForm()
+        },
+        onError: (error) => {
+          toast.error("Failed to create task.")
+          setIsSubmitting(false)
+        },
+      }
+    )
   }
 
   function resetForm() {
@@ -149,7 +138,7 @@ export function NewTaskModal({ isOpen, onClose, onAddTask }: NewTaskModalProps) 
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="dueDate"
+                name="dueTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Due Date</FormLabel>
@@ -166,7 +155,7 @@ export function NewTaskModal({ isOpen, onClose, onAddTask }: NewTaskModalProps) 
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus disabled={{ before: minDate }} />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
@@ -186,9 +175,9 @@ export function NewTaskModal({ isOpen, onClose, onAddTask }: NewTaskModalProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="LOW">LOW</SelectItem>
+                        <SelectItem value="NORMAL">NORMAL</SelectItem>
+                        <SelectItem value="HIGH">HIGH</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -17,7 +17,7 @@ export class TasksService {
   async create(dto: CreateTaskDto, AuthedUser: AuthedUser) {
     try {
 
-      if (dto.dueTime && new Date(dto.dueTime) < new Date()) throw new HttpException('Due time must be in the future', HttpStatus.BAD_REQUEST);
+      if (new Date(dto.dueTime).setHours(0,0,0,0) < new Date().setHours(0,0,0,0)) throw new HttpException('Due time must be today or in the future', HttpStatus.BAD_REQUEST);
 
       const task = await this.prisma.task.create({
         data: {

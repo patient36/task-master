@@ -10,9 +10,9 @@ export const getTasks = async ({ page, limit, status }: { page: number; limit: n
     }
 };
 
-export const createTask = async (taskData: any) => {
+export const createTask = async (taskData: { title: string, description: string, dueTime: string, priority?: string }) => {
     try {
-        const response = await axios.post("/tasks", taskData);
+        const response = await axios.post("/tasks/create", taskData);
         return response.data;
     } catch (error) {
         console.error("Error creating task:", error);
@@ -20,15 +20,16 @@ export const createTask = async (taskData: any) => {
     }
 };
 
-export const updateTask = async (taskId: string, taskData: any) => {
+export const updateTask = async (taskId: string, taskData: { title?: string, description?: string, dueTime?: string, priority?: string, status?: string }) => {
     try {
-        const response = await axios.put(`/tasks/${taskId}`, taskData);
+        const response = await axios.patch(`/tasks/${taskId}`, taskData);
         return response.data;
     } catch (error) {
         console.error("Error updating task:", error);
         throw error;
     }
 };
+
 export const deleteTask = async (taskId: string) => {
     try {
         const response = await axios.delete(`/tasks/${taskId}`);
@@ -39,15 +40,6 @@ export const deleteTask = async (taskId: string) => {
     }
 };
 
-export const getTaskById = async (taskId: string) => {
-    try {
-        const response = await axios.get(`/tasks/${taskId}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching task by ID:", error);
-        throw error;
-    }
-};
 
 export const searchTasks = async (params: { query: string }) => {
     try {
