@@ -21,9 +21,6 @@ export function Navbar() {
     const { userData, isError, isLoading, logout } = useAuth();
     const { user } = userData || {};
     const router = useRouter()
-    if (isLoading) return <NavbarSkeleton />
-    if (isError) return <NavbarSkeleton />
-    if (!user) return <NavbarSkeleton />
 
     const handleLogout = () => {
         logout(undefined, {
@@ -36,6 +33,8 @@ export function Navbar() {
             }
         });
     };
+    if (isLoading || !user || isError) return <NavbarSkeleton />
+
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <div className="container flex h-16 items-center justify-between">

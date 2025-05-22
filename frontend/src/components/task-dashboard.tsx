@@ -7,10 +7,7 @@ import {
   Circle,
   Clock,
   ListTodo,
-  MoreHorizontal,
   Plus,
-  Trash2,
-  Edit,
   XCircle,
   ChevronLeft,
   ChevronRight,
@@ -18,13 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useRef } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Task, TaskStats } from "@/lib/types"
@@ -70,6 +61,7 @@ export function TaskDashboard({
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
   const { deleteTask } = useDeleteTask()
   const { updateTask } = useUpdateTask()
+  const tabsRef = useRef<HTMLDivElement>(null)
 
   const handleTabChange = (value: string) => {
     const statusValue = value === "all" ? null : value.toUpperCase()
@@ -78,6 +70,7 @@ export function TaskDashboard({
 
   const handlePageChange = (page: number) => {
     onPageChange(page)
+    tabsRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   const handleItemsPerPageChange = (value: string) => {
@@ -222,7 +215,6 @@ export function TaskDashboard({
   const renderItemsPerPageSelector = () => {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Show</span>
         <Select value={(itemsPerPage ?? 5).toString()} onValueChange={handleItemsPerPageChange}>
           <SelectTrigger className="w-[70px] h-8">
             <SelectValue placeholder="5" />
@@ -309,7 +301,7 @@ export function TaskDashboard({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium line-through">Cancelled </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent ref={tabsRef}>
                   <div className="text-2xl font-bold">{stats.cancelled}</div>
                   <Progress value={(stats.cancelled / stats.total) * 100} className="mt-2" />
                 </CardContent>
@@ -317,7 +309,7 @@ export function TaskDashboard({
             </div>
 
             <Tabs defaultValue="all" onValueChange={handleTabChange}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <TabsList>
                   <TabsTrigger value="all">All Tasks</TabsTrigger>
                   <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -528,10 +520,7 @@ interface TaskItemProps {
   onMarkCompleted?: (taskId: string) => void
 }
 
-function TaskItem({ task, onViewTask, onEditTask, onDeleteTask, onMarkCompleted }: TaskItemProps) {
-  const handleDropdownClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+function TaskItem({ task, onViewTask }: TaskItemProps) {
 
   return (
     <Card

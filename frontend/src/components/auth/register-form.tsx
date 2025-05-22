@@ -38,7 +38,11 @@ export function RegisterForm() {
             return
         }
         setIsLoading(true)
-        const { confirmPassword, ...rest } = values
+        const rest = {
+            name: values.name,
+            email: values.email,
+            password: values.password,
+        }
         register(rest, {
             onSuccess: () => {
                 router.push("/dashboard")

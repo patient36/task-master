@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, ListChecks, Users } from "lucide-react"
+import { CheckCircle, Clock, ListChecks} from "lucide-react"
 
 export function InfoPanel() {
     return (
