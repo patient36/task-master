@@ -30,5 +30,5 @@ export const useAuthGuard = () => {
     if (isAuthenticated && path === '/reset-password') {
       router.replace('/settings')
     }
-  }, [isLoading, user, path, router])
+  }, [isLoading, user, path, router,isAuthenticated])
 }

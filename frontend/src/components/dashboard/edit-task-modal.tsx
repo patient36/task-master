@@ -89,7 +89,7 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
         setIsSubmitting(false)
         onClose()
       },
-      onError: (error) => {
+      onError: () => {
         toast.error("Failed to update task.")
         setIsSubmitting(false)
       },

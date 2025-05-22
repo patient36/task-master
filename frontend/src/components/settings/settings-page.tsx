@@ -95,7 +95,7 @@ export default function SettingsPage() {
                 setTimeout(() => setNameSuccess(false), 3000)
                 setNameLoading(false)
             },
-            onError: (err) => {
+            onError: () => {
                 toast.error("Failed to update name. Please try again.")
                 setNameLoading(false)
                 setError("Failed to update name. Please try again.")

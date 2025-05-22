@@ -133,7 +133,7 @@ export function PasswordResetPortal() {
           <CardHeader>
             <CardTitle className="text-2xl">Enter OTP</CardTitle>
             <CardDescription>
-              We've sent a 12-digit code to your email. Enter it below along with your new password.
+              We&rsquo;ve sent a 12-digit code to your email. Enter it below along with your new password.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleResetPassword}>
