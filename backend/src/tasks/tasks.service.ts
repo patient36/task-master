@@ -59,7 +59,7 @@ export class TasksService {
           where,
           skip,
           take: limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { updatedAt: 'desc' },
         }),
         this.prisma.task.count({ where }),
         ...statuses.map((s) =>
