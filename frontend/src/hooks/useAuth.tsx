@@ -7,8 +7,9 @@ export const useAuth = () => {
     const userQuery = useQuery({
         queryKey: ['auth', 'user'],
         queryFn: getCurrentUser,
-        retry: false,
-        staleTime: 1000 * 60 * 5,
+        retry: true,
+        refetchOnWindowFocus: true,
+        staleTime: 1000 * 10,
     });
 
     const loginMutation = useMutation({
@@ -49,7 +50,11 @@ export const useAuth = () => {
         mutationKey: ['auth', 'delete-account'],
         mutationFn: deleteAccount,
         onSuccess: () => {
-            queryClient.setQueryData(['auth', 'user'], null);
+            queryClient.removeQueries({
+                predicate: (query) =>
+                    query.queryKey[0] === 'auth',
+            });
+
         }
     })
 
@@ -57,7 +62,9 @@ export const useAuth = () => {
         mutationKey: ['auth', 'update-user'],
         mutationFn: updateUser,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+            queryClient.invalidateQueries({
+                predicate: (query) => query.queryKey[0] === 'auth',
+            });
         }
     })
 

@@ -25,7 +25,6 @@ const baseRequestInterceptor = (config: InternalAxiosRequestConfig) => {
 const baseResponseInterceptor = (response: AxiosResponse) => response;
 
 const baseErrorInterceptor = (error: AxiosError) => {
-  const status = error.response?.status;
 
   const data = error.response?.data as { message?: string; error?: string } | undefined;
   const message =

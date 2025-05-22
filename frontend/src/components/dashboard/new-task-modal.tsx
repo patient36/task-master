@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import type { Task } from "@/lib/types"
 import { useCreateTask } from "@/hooks/useTasks"
 
 interface NewTaskModalProps {
@@ -82,12 +81,12 @@ export function NewTaskModal({ isOpen, onClose }: NewTaskModalProps) {
         dueTime: values.dueTime.toISOString(),
       },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           toast.success("Task created successfully!")
           setIsSubmitting(false)
           resetForm()
         },
-        onError: (error) => {
+        onError: () => {
           toast.error("Failed to create task.")
           setIsSubmitting(false)
         },
